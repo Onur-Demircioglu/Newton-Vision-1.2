@@ -1,0 +1,24 @@
+include README.md
+include PROGRESS.md
+include CMakeLists.txt
+include pyproject.toml
+recursive-include include *.hpp
+recursive-include cpp *.h *.cpp *.cu
+recursive-include src/newton_vision *.py
+recursive-include docs *.md
+recursive-include benchmarks *.py
+recursive-include examples *.py *.cpp
+recursive-include tests *.py *.cpp
+recursive-include tutorials *.py
+
+global-exclude __pycache__
+global-exclude *.py[cod]
+global-exclude *.nv
+global-exclude *.bin
+global-exclude *.exe
+global-exclude *.onnx
+global-exclude *.png
+global-exclude *.log
+prune tutorials/data
+prune build
+prune dist

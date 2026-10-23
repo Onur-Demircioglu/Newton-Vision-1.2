@@ -1,0 +1,35 @@
+# Build & Compiled artifacts
+build/
+dist/
+*.egg-info/
+.wheel_tag/
+_core*.pyd
+_core*.so
+*.exe
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Dataset & Temporary Model Checkpoints
+tutorials/data/
+*.nv
+*.bin
+*.onnx
+*.png
+*.log
+.coverage
+
+# Uygulamaların çalışması için gereken modeller ve demo görselleri (yukarıdaki kuralların istisnaları)
+!models/*.nv
+!tutorials/lenet_mnist_v1.nv
+!assets/**
+
+# IDE & OS
+.vs/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
