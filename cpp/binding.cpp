@@ -67,7 +67,7 @@ py::array_t<float> conv2d_py(
 
 #ifdef HAS_CUDA
     if (use_cuda && nv::has_cuda_device()) {
-        y_vec = nv::conv2d_cuda(x_ptr, xs, w_ptr, C_out, kH, kW, bias_ptr, stride, padding, H_out, W_out);
+        y_vec = nv::conv2d_cuda(x_ptr, xs, w_ptr, C_out, kH, kW, bias_ptr, stride, padding, dilation, groups, H_out, W_out);
     } else {
         y_vec = nv::conv2d(x_ptr, xs, w_ptr, C_out, kH, kW, bias_ptr, stride, padding, dilation, groups, H_out, W_out);
     }

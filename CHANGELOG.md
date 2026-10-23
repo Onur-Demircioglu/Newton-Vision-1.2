@@ -64,6 +64,22 @@
 - Gruplu/depthwise `conv2d` forward ve backward: paralellik gruplar üzerinden. GEMM ve `im2col`'daki iç içe paralel bölgeler `if(!omp_in_parallel())` ile engellendi.
 - Eğitim adımı (batch 2, 224², bu makine): ResNet-18 7.36 → 1.16 sn, MobileNetV2 5.26 → 1.03 sn. Parite 85/85 korundu.
 
+### 🖥 CUDA build'i (Windows, MSVC 14.44 + CUDA 12.4)
+- `scripts/build_msvc_cuda.bat`: ayrı `build/msvc-cuda` klasörüne MSVC + CUDA build'i. Varsayılan MinGW build'i değişmez.
+- CUDA çekirdekleri:
+  - Tüm CUDA çağrılarına hata kontrolü eklendi (`RuntimeError`).
+  - 1 boyutlu grid: eski `grid.z = N*C_out` 65.535'i aşınca çekirdek sessizce çalışmıyordu.
+  - `conv2d`'ye dilation/groups desteği: önceden yok sayılıyordu ve CUDA'da gruplu evrişim yanlış sonuç veriyordu.
+  - `maxpool2d` `-inf` başlangıç değeriyle CPU ile birebir aynı.
+- `tests/test_cuda_kernels.py`: çekirdekler, `.cuda()` tensörlerle katmanlar/gradyanlar ve ResNet-18 / MobileNetV2 tam forward, CPU ile karşılaştırılıyor. Sonuç: MSVC + CUDA build'inde 94/94.
+- Taşınabilirlik:
+  - `cpp/layers.h`'ye eksik `#include <string>` eklendi.
+  - OpenMP 2.0 uyumu: `collapse` → düz döngü, `omp simd` → `NV_OMP_SIMD` makroları.
+  - MSVC'de `/openmp` kullanılıyor; `/openmp:llvm` PyTorch'un Intel OpenMP'siyle çakışıyordu.
+  - CUDA yalnızca `_core` modülüne tanımlanıyor; C++ başlık API'sinin `HAS_CUDA` dalları var olmayan fonksiyonlara başvuruyordu.
+- `newton_vision/__init__.py`: `CUDA_PATH/bin` DLL dizini olarak ekleniyor.
+- Yan etki: düz OpenMP döngüleri MinGW build'inde eğitimi hızlandırdı (ResNet-18 adımı 1.16 → 0.88 sn, MobileNetV2 1.03 → 0.68 sn).
+
 ### 🛠 Altyapı
 - Proje klasöründe ayrı git deposu başlatıldı (`main`). `.gitignore` uygulamaların ihtiyaç duyduğu `models/*.nv`, `tutorials/lenet_mnist_v1.nv` ve `assets/` dosyalarını artık hariç tutmuyor.
 

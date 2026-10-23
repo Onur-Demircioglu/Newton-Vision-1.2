@@ -1,7 +1,7 @@
 # NEWTON-VISION — RESMİ SAYISAL PARİTE VE DOĞRULAMA MATRİSİ RAPORU
 
 > **Rapor Türü:** Bağımsız, Deterministik ve Parametrik Karşılaştırma  
-> **Tarih / Zaman:** 2026-10-23 21:12:58  
+> **Tarih / Zaman:** 2026-10-23 22:39:04  
 > **Framework Sürümü:** newton-vision v1.1.6  
 > **Referans Motor:** PyTorch 2.6.0+cpu (IEEE 754 CPU Referansı)  
 > **Donanım Platformu:** Intel64 Family 6 Model 141 Stepping 1, GenuineIntel (Windows 11)  
@@ -48,32 +48,32 @@
 | Adam Trajectory | 10 Steps (lr=0.001, wd=0.05) | 2nd Moment (v) | `atol=1e-04, rtol=1e-03` | `1.86e-09` | `1.98e-10` | `1.30e-07` | `%100.0000` | **PASS** |
 | Conv2d Matrix | Standard 3x3 | Forward (Y) | `atol=1e-04, rtol=1e-03` | `3.27e-06` | `3.59e-07` | `2.92e-05` | `%100.0000` | **PASS** |
 | Conv2d Matrix | Standard 3x3 | Input Grad | `atol=1e-04, rtol=1e-03` | `3.79e-06` | `4.80e-07` | `7.87e-05` | `%100.0000` | **PASS** |
-| Conv2d Matrix | Standard 3x3 | Weight Grad | `atol=1e-04, rtol=1e-03` | `1.19e-05` | `2.16e-06` | `1.67e-04` | `%100.0000` | **PASS** |
-| Conv2d Matrix | Standard 3x3 | Bias Grad | `atol=1e-04, rtol=1e-03` | `5.95e-06` | `3.01e-06` | `2.00e-06` | `%100.0000` | **PASS** |
+| Conv2d Matrix | Standard 3x3 | Weight Grad | `atol=1e-04, rtol=1e-03` | `1.79e-05` | `3.39e-06` | `1.14e-04` | `%100.0000` | **PASS** |
+| Conv2d Matrix | Standard 3x3 | Bias Grad | `atol=1e-04, rtol=1e-03` | `4.44e-06` | `1.86e-06` | `8.97e-07` | `%100.0000` | **PASS** |
 | Conv2d Matrix | Strided 3x3 s=2 | Forward (Y) | `atol=1e-04, rtol=1e-03` | `3.96e-06` | `4.41e-07` | `2.41e-05` | `%100.0000` | **PASS** |
 | Conv2d Matrix | Strided 3x3 s=2 | Input Grad | `atol=1e-04, rtol=1e-03` | `2.20e-06` | `1.78e-07` | `2.55e-03` | `%100.0000` | **PASS** |
-| Conv2d Matrix | Strided 3x3 s=2 | Weight Grad | `atol=1e-04, rtol=1e-03` | `3.34e-06` | `7.56e-07` | `9.59e-05` | `%100.0000` | **PASS** |
-| Conv2d Matrix | Strided 3x3 s=2 | Bias Grad | `atol=1e-04, rtol=1e-03` | `1.30e-06` | `5.47e-07` | `1.07e-06` | `%100.0000` | **PASS** |
+| Conv2d Matrix | Strided 3x3 s=2 | Weight Grad | `atol=1e-04, rtol=1e-03` | `6.71e-06` | `1.18e-06` | `6.94e-05` | `%100.0000` | **PASS** |
+| Conv2d Matrix | Strided 3x3 s=2 | Bias Grad | `atol=1e-04, rtol=1e-03` | `4.44e-06` | `1.80e-06` | `1.86e-06` | `%100.0000` | **PASS** |
 | Conv2d Matrix | Dilated 3x3 d=2 | Forward (Y) | `atol=1e-04, rtol=1e-03` | `3.10e-06` | `3.75e-07` | `2.20e-05` | `%100.0000` | **PASS** |
 | Conv2d Matrix | Dilated 3x3 d=2 | Input Grad | `atol=1e-04, rtol=1e-03` | `2.10e-06` | `2.79e-07` | `3.14e-05` | `%100.0000` | **PASS** |
-| Conv2d Matrix | Dilated 3x3 d=2 | Weight Grad | `atol=1e-04, rtol=1e-03` | `7.55e-06` | `2.08e-06` | `1.14e-05` | `%100.0000` | **PASS** |
-| Conv2d Matrix | Dilated 3x3 d=2 | Bias Grad | `atol=1e-04, rtol=1e-03` | `3.42e-06` | `1.93e-06` | `2.18e-07` | `%100.0000` | **PASS** |
+| Conv2d Matrix | Dilated 3x3 d=2 | Weight Grad | `atol=1e-04, rtol=1e-03` | `2.73e-05` | `4.12e-06` | `1.25e-05` | `%100.0000` | **PASS** |
+| Conv2d Matrix | Dilated 3x3 d=2 | Bias Grad | `atol=1e-04, rtol=1e-03` | `7.24e-06` | `4.49e-06` | `4.11e-07` | `%100.0000` | **PASS** |
 | Conv2d Matrix | Grouped G=2 | Forward (Y) | `atol=1e-04, rtol=1e-03` | `2.94e-06` | `3.00e-07` | `2.37e-04` | `%100.0000` | **PASS** |
 | Conv2d Matrix | Grouped G=2 | Input Grad | `atol=1e-04, rtol=1e-03` | `1.50e-06` | `2.30e-07` | `5.34e-05` | `%100.0000` | **PASS** |
-| Conv2d Matrix | Grouped G=2 | Weight Grad | `atol=1e-04, rtol=1e-03` | `6.60e-06` | `1.37e-06` | `2.15e-04` | `%100.0000` | **PASS** |
-| Conv2d Matrix | Grouped G=2 | Bias Grad | `atol=1e-04, rtol=1e-03` | `1.97e-06` | `7.96e-07` | `8.46e-07` | `%100.0000` | **PASS** |
+| Conv2d Matrix | Grouped G=2 | Weight Grad | `atol=1e-04, rtol=1e-03` | `1.21e-05` | `2.48e-06` | `8.21e-04` | `%100.0000` | **PASS** |
+| Conv2d Matrix | Grouped G=2 | Bias Grad | `atol=1e-04, rtol=1e-03` | `3.10e-06` | `1.99e-06` | `1.62e-06` | `%100.0000` | **PASS** |
 | Conv2d Matrix | Dilated+Grouped | Forward (Y) | `atol=1e-04, rtol=1e-03` | `2.27e-06` | `1.93e-07` | `3.97e-05` | `%100.0000` | **PASS** |
 | Conv2d Matrix | Dilated+Grouped | Input Grad | `atol=1e-04, rtol=1e-03` | `1.97e-06` | `1.70e-07` | `1.27e-04` | `%100.0000` | **PASS** |
-| Conv2d Matrix | Dilated+Grouped | Weight Grad | `atol=1e-04, rtol=1e-03` | `6.53e-06` | `1.84e-06` | `2.98e-05` | `%100.0000` | **PASS** |
-| Conv2d Matrix | Dilated+Grouped | Bias Grad | `atol=1e-04, rtol=1e-03` | `6.72e-06` | `2.86e-06` | `7.38e-07` | `%100.0000` | **PASS** |
+| Conv2d Matrix | Dilated+Grouped | Weight Grad | `atol=1e-04, rtol=1e-03` | `1.17e-05` | `3.25e-06` | `5.13e-05` | `%100.0000` | **PASS** |
+| Conv2d Matrix | Dilated+Grouped | Bias Grad | `atol=1e-04, rtol=1e-03` | `6.85e-06` | `4.74e-06` | `1.58e-06` | `%100.0000` | **PASS** |
 | Conv2d Matrix | Depthwise G=Cin | Forward (Y) | `atol=1e-04, rtol=1e-03` | `9.22e-07` | `1.13e-07` | `1.64e-03` | `%100.0000` | **PASS** |
 | Conv2d Matrix | Depthwise G=Cin | Input Grad | `atol=1e-04, rtol=1e-03` | `9.89e-07` | `1.06e-07` | `6.26e-06` | `%100.0000` | **PASS** |
-| Conv2d Matrix | Depthwise G=Cin | Weight Grad | `atol=1e-04, rtol=1e-03` | `3.09e-06` | `9.85e-07` | `2.14e-06` | `%100.0000` | **PASS** |
-| Conv2d Matrix | Depthwise G=Cin | Bias Grad | `atol=1e-04, rtol=1e-03` | `2.27e-06` | `8.61e-07` | `3.69e-07` | `%100.0000` | **PASS** |
+| Conv2d Matrix | Depthwise G=Cin | Weight Grad | `atol=1e-04, rtol=1e-03` | `9.14e-06` | `1.65e-06` | `2.54e-06` | `%100.0000` | **PASS** |
+| Conv2d Matrix | Depthwise G=Cin | Bias Grad | `atol=1e-04, rtol=1e-03` | `4.03e-06` | `2.42e-06` | `1.31e-06` | `%100.0000` | **PASS** |
 | Conv2d Matrix | Kernel 1x1 s=1 | Forward (Y) | `atol=1e-04, rtol=1e-03` | `8.86e-07` | `1.15e-07` | `2.04e-05` | `%100.0000` | **PASS** |
 | Conv2d Matrix | Kernel 1x1 s=1 | Input Grad | `atol=1e-04, rtol=1e-03` | `1.85e-06` | `2.23e-07` | `4.54e-05` | `%100.0000` | **PASS** |
-| Conv2d Matrix | Kernel 1x1 s=1 | Weight Grad | `atol=1e-04, rtol=1e-03` | `2.66e-06` | `8.96e-07` | `3.66e-06` | `%100.0000` | **PASS** |
-| Conv2d Matrix | Kernel 1x1 s=1 | Bias Grad | `atol=1e-04, rtol=1e-03` | `1.55e-06` | `7.47e-07` | `9.48e-06` | `%100.0000` | **PASS** |
+| Conv2d Matrix | Kernel 1x1 s=1 | Weight Grad | `atol=1e-04, rtol=1e-03` | `4.98e-06` | `1.22e-06` | `2.34e-06` | `%100.0000` | **PASS** |
+| Conv2d Matrix | Kernel 1x1 s=1 | Bias Grad | `atol=1e-04, rtol=1e-03` | `3.45e-06` | `1.28e-06` | `4.96e-06` | `%100.0000` | **PASS** |
 | Linear Matrix | 2D Dense (N=8, 32->16) | Forward (Y) | `atol=1e-04, rtol=1e-03` | `1.80e-06` | `3.74e-07` | `1.30e-05` | `%100.0000` | **PASS** |
 | Linear Matrix | 2D Dense (N=8, 32->16) | Input Grad | `atol=1e-04, rtol=1e-03` | `1.29e-06` | `1.80e-07` | `2.34e-05` | `%100.0000` | **PASS** |
 | Linear Matrix | 2D Dense (N=8, 32->16) | Weight Grad | `atol=1e-04, rtol=1e-03` | `6.26e-07` | `9.63e-08` | `8.10e-06` | `%100.0000` | **PASS** |
@@ -95,7 +95,7 @@
 | LayerNorm | 3D Shape | Gamma Grad | `atol=1e-04, rtol=1e-03` | `1.23e-06` | `2.65e-07` | `3.18e-06` | `%100.0000` | **PASS** |
 | LayerNorm | 3D Shape | Beta Grad | `atol=1e-04, rtol=1e-03` | `6.46e-07` | `2.62e-07` | `2.75e-06` | `%100.0000` | **PASS** |
 | MHSA Matrix | MHSA Tiny (B=2, S=6, D=16, H=2) | Forward (Y) | `atol=1e-04, rtol=1e-03` | `6.86e-07` | `1.34e-07` | `6.55e-06` | `%100.0000` | **PASS** |
-| MHSA Matrix | MHSA Tiny (B=2, S=6, D=16, H=2) | Input Grad | `atol=1e-04, rtol=1e-03` | `1.18e-06` | `2.41e-07` | `9.88e-05` | `%100.0000` | **PASS** |
+| MHSA Matrix | MHSA Tiny (B=2, S=6, D=16, H=2) | Input Grad | `atol=1e-04, rtol=1e-03` | `1.18e-06` | `2.43e-07` | `9.55e-05` | `%100.0000` | **PASS** |
 | MHSA Matrix | MHSA Tiny (B=2, S=6, D=16, H=2) | Q Proj Grad | `atol=1e-04, rtol=1e-03` | `1.72e-06` | `3.69e-07` | `1.45e-05` | `%100.0000` | **PASS** |
 | MHSA Matrix | MHSA Tiny (B=2, S=6, D=16, H=2) | K Proj Grad | `atol=1e-04, rtol=1e-03` | `1.51e-06` | `3.86e-07` | `1.47e-04` | `%100.0000` | **PASS** |
 | MHSA Matrix | MHSA Tiny (B=2, S=6, D=16, H=2) | V Proj Grad | `atol=1e-04, rtol=1e-03` | `2.27e-06` | `2.91e-07` | `9.33e-05` | `%100.0000` | **PASS** |
@@ -115,7 +115,7 @@
 | CrossEntropy | Soft Targets (Sum=1.0) | Loss Value | `atol=1e-04, rtol=1e-03` | `4.84e-08` | `4.84e-08` | `2.98e-08` | `%100.0000` | **PASS** |
 | CrossEntropy | Soft Targets | Logits Grad | `atol=1e-04, rtol=1e-03` | `2.32e-08` | `5.55e-09` | `3.97e-07` | `%100.0000` | **PASS** |
 | CrossEntropy | Extreme (+-80.0) | Loss Value | `atol=1e-04, rtol=1e-03` | `6.87e-10` | `6.87e-10` | `6.82e-03` | `%0.0000` | **PASS** |
-| Activations | GELU (approx='tanh') | Forward (Y) | `atol=1e-04, rtol=1e-03` | `3.79e-07` | `5.01e-08` | `1.73e-01` | `%100.0000` | **PASS** |
+| Activations | GELU (approx='tanh') | Forward (Y) | `atol=1e-04, rtol=1e-03` | `3.79e-07` | `5.07e-08` | `1.73e-01` | `%100.0000` | **PASS** |
 | Activations | GELU (approx='tanh') | Input Grad | `atol=1e-04, rtol=1e-03` | `9.08e-07` | `1.28e-07` | `2.67e-01` | `%100.0000` | **PASS** |
 | Activations | Sigmoid Extreme (+-500) | Forward (Y) | `atol=1e-04, rtol=1e-03` | `1.89e-08` | `4.26e-09` | `4.04e-08` | `%100.0000` | **PASS** |
 | Activations | Sigmoid Extreme (+-500) | Input Grad | `atol=1e-04, rtol=1e-03` | `7.62e-09` | `2.13e-09` | `3.88e-08` | `%100.0000` | **PASS** |

@@ -1,85 +1,116 @@
 // newton-vision CUDA Hızlandırma Çekirdeği Impl.
+//
+// Her çağrı: host -> device kopya, çekirdek, device -> host kopya (kalıcı GPU belleği yok).
+// Tüm CUDA çağrıları kontrol edilir; hata olursa std::runtime_error fırlatılır (Python'da RuntimeError).
 #include "cuda_layers.h"
 #include <cuda_runtime.h>
-#include <iostream>
+#include <cmath>
+#include <string>
 #include <vector>
 #include <stdexcept>
 
 namespace nv {
 
+namespace {
+
+void cuda_check(cudaError_t err, const char* what) {
+    if (err != cudaSuccess) {
+        throw std::runtime_error(std::string("CUDA hatası (") + what + "): " + cudaGetErrorString(err));
+    }
+}
+
+// Hata durumunda da serbest bırakılan cihaz tamponu
+struct DeviceBuffer {
+    float* ptr = nullptr;
+    explicit DeviceBuffer(size_t bytes) {
+        if (bytes > 0) cuda_check(cudaMalloc(&ptr, bytes), "cudaMalloc");
+    }
+    ~DeviceBuffer() { if (ptr) cudaFree(ptr); }
+    DeviceBuffer(const DeviceBuffer&) = delete;
+    DeviceBuffer& operator=(const DeviceBuffer&) = delete;
+};
+
+constexpr int kBlock = 256;
+
+int grid_for(int64_t total) {
+    int64_t blocks = (total + kBlock - 1) / kBlock;
+    if (blocks > 2147483647LL) throw std::runtime_error("CUDA: çıktı çekirdek grid sınırını aşıyor");
+    return static_cast<int>(blocks);
+}
+
+void launch_check(const char* what) {
+    cuda_check(cudaGetLastError(), what);
+    cuda_check(cudaDeviceSynchronize(), what);
+}
+
+} // namespace
+
+// Bir iş parçacığı = bir çıktı elemanı (n, co, oh, ow). Gruplu ve dilated evrişimi destekler;
+// CPU im2col yoluyla aynı indeksleme: giriş kanalı = g * C_in_g + ci, ih = oh*s + kh*d - p.
 __global__ void conv2d_kernel(const float* x, const float* w, const float* bias,
                               int N, int C_in, int H, int W,
                               int C_out, int kH, int kW,
-                              int stride, int padding,
-                              int H_out, int W_out,
-                              float* y) {
-    int ow = blockIdx.x * blockDim.x + threadIdx.x;
-    int oh = blockIdx.y * blockDim.y + threadIdx.y;
-    int index_z = blockIdx.z * blockDim.z + threadIdx.z;
+                              int stride, int padding, int dilation, int groups,
+                              int H_out, int W_out, float* y) {
+    int64_t idx = static_cast<int64_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    int64_t total = static_cast<int64_t>(N) * C_out * H_out * W_out;
+    if (idx >= total) return;
 
-    if (ow >= W_out || oh >= H_out) return;
+    int ow = static_cast<int>(idx % W_out);
+    int oh = static_cast<int>((idx / W_out) % H_out);
+    int co = static_cast<int>((idx / (static_cast<int64_t>(W_out) * H_out)) % C_out);
+    int n = static_cast<int>(idx / (static_cast<int64_t>(W_out) * H_out * C_out));
 
-    int n = index_z / C_out;
-    int co = index_z % C_out;
-
-    if (n >= N || co >= C_out) return;
+    const int C_in_g = C_in / groups;
+    const int C_out_g = C_out / groups;
+    const int g = co / C_out_g;
 
     float acc = bias ? bias[co] : 0.0f;
-
-    for (int ci = 0; ci < C_in; ++ci) {
+    for (int ci = 0; ci < C_in_g; ++ci) {
+        const int c = g * C_in_g + ci;
         for (int kh = 0; kh < kH; ++kh) {
+            const int ih = oh * stride + kh * dilation - padding;
+            if (ih < 0 || ih >= H) continue;
             for (int kw = 0; kw < kW; ++kw) {
-                int ih = oh * stride + kh - padding;
-                int iw = ow * stride + kw - padding;
-                if (ih >= 0 && ih < H && iw >= 0 && iw < W) {
-                    int64_t xidx = ((int64_t(n) * C_in + ci) * H + ih) * W + iw;
-                    int64_t widx = ((int64_t(co) * C_in + ci) * kH + kh) * kW + kw;
-                    acc += x[xidx] * w[widx];
-                }
+                const int iw = ow * stride + kw * dilation - padding;
+                if (iw < 0 || iw >= W) continue;
+                const int64_t xidx = ((static_cast<int64_t>(n) * C_in + c) * H + ih) * W + iw;
+                const int64_t widx = ((static_cast<int64_t>(co) * C_in_g + ci) * kH + kh) * kW + kw;
+                acc += x[xidx] * w[widx];
             }
         }
     }
-
-    int64_t yidx = ((int64_t(n) * C_out + co) * H_out + oh) * W_out + ow;
-    y[yidx] = acc;
+    y[idx] = acc;
 }
 
 __global__ void relu_kernel(const float* x, float* y, int64_t n) {
-    int64_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    int64_t idx = static_cast<int64_t>(blockIdx.x) * blockDim.x + threadIdx.x;
     if (idx < n) {
         y[idx] = x[idx] > 0.0f ? x[idx] : 0.0f;
     }
 }
 
 __global__ void maxpool2d_kernel(const float* x, int N, int C, int H, int W,
-                                 int kernel, int stride, int H_out, int W_out,
-                                 float* y) {
-    int ow = blockIdx.x * blockDim.x + threadIdx.x;
-    int oh = blockIdx.y * blockDim.y + threadIdx.y;
-    int index_z = blockIdx.z * blockDim.z + threadIdx.z;
+                                 int kernel, int stride, int H_out, int W_out, float* y) {
+    int64_t idx = static_cast<int64_t>(blockIdx.x) * blockDim.x + threadIdx.x;
+    int64_t total = static_cast<int64_t>(N) * C * H_out * W_out;
+    if (idx >= total) return;
 
-    if (ow >= W_out || oh >= H_out) return;
+    int ow = static_cast<int>(idx % W_out);
+    int oh = static_cast<int>((idx / W_out) % H_out);
+    int64_t nc = idx / (static_cast<int64_t>(W_out) * H_out);   // n * C + c
 
-    int n = index_z / C;
-    int c = index_z % C;
-
-    if (n >= N || c >= C) return;
-
-    float max_val = -1e38f;
+    // CPU çekirdeğiyle aynı: -inf başlangıç, katı '>' karşılaştırması
+    float max_val = -INFINITY;
     for (int kh = 0; kh < kernel; ++kh) {
         for (int kw = 0; kw < kernel; ++kw) {
-            int ih = oh * stride + kh;
-            int iw = ow * stride + kw;
-            if (ih < H && iw < W) {
-                int64_t xidx = ((int64_t(n) * C + c) * H + ih) * W + iw;
-                float v = x[xidx];
-                if (v > max_val) max_val = v;
-            }
+            const int ih = oh * stride + kh;
+            const int iw = ow * stride + kw;
+            const float v = x[(nc * H + ih) * W + iw];
+            if (v > max_val) max_val = v;
         }
     }
-
-    int64_t yidx = ((int64_t(n) * C + c) * H_out + oh) * W_out + ow;
-    y[yidx] = max_val;
+    y[idx] = max_val;
 }
 
 bool has_cuda_device() {
@@ -91,65 +122,49 @@ bool has_cuda_device() {
 std::vector<float> conv2d_cuda(const float* x, Shape4 xs,
                                const float* w, int C_out, int kH, int kW,
                                const float* bias,
-                               int stride, int padding,
+                               int stride, int padding, int dilation, int groups,
                                int& H_out, int& W_out) {
     const int N = xs.n, C_in = xs.c, H = xs.h, W = xs.w;
-    H_out = (H + 2 * padding - kH) / stride + 1;
-    W_out = (W + 2 * padding - kW) / stride + 1;
+    if (groups < 1 || C_in % groups != 0 || C_out % groups != 0) {
+        throw std::invalid_argument("conv2d_cuda: C_in ve C_out 'groups' değerine tam bölünmeli");
+    }
+    const int eff_kH = dilation * (kH - 1) + 1;
+    const int eff_kW = dilation * (kW - 1) + 1;
+    H_out = (H + 2 * padding - eff_kH) / stride + 1;
+    W_out = (W + 2 * padding - eff_kW) / stride + 1;
+    if (H_out <= 0 || W_out <= 0) throw std::invalid_argument("geçersiz conv çıktı boyutu");
 
-    size_t x_size = xs.size() * sizeof(float);
-    size_t w_size = static_cast<size_t>(C_out) * C_in * kH * kW * sizeof(float);
-    size_t b_size = bias ? C_out * sizeof(float) : 0;
-    size_t y_size = static_cast<size_t>(N) * C_out * H_out * W_out * sizeof(float);
+    const size_t x_bytes = static_cast<size_t>(xs.size()) * sizeof(float);
+    const size_t w_bytes = static_cast<size_t>(C_out) * (C_in / groups) * kH * kW * sizeof(float);
+    const size_t b_bytes = bias ? static_cast<size_t>(C_out) * sizeof(float) : 0;
+    const int64_t total = static_cast<int64_t>(N) * C_out * H_out * W_out;
+    const size_t y_bytes = static_cast<size_t>(total) * sizeof(float);
 
-    float *d_x = nullptr, *d_w = nullptr, *d_b = nullptr, *d_y = nullptr;
-    cudaMalloc(&d_x, x_size);
-    cudaMalloc(&d_w, w_size);
-    if (bias) cudaMalloc(&d_b, b_size);
-    cudaMalloc(&d_y, y_size);
+    DeviceBuffer d_x(x_bytes), d_w(w_bytes), d_b(b_bytes), d_y(y_bytes);
+    cuda_check(cudaMemcpy(d_x.ptr, x, x_bytes, cudaMemcpyHostToDevice), "conv2d x kopyası");
+    cuda_check(cudaMemcpy(d_w.ptr, w, w_bytes, cudaMemcpyHostToDevice), "conv2d w kopyası");
+    if (bias) cuda_check(cudaMemcpy(d_b.ptr, bias, b_bytes, cudaMemcpyHostToDevice), "conv2d bias kopyası");
 
-    cudaMemcpy(d_x, x, x_size, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_w, w, w_size, cudaMemcpyHostToDevice);
-    if (bias) cudaMemcpy(d_b, bias, b_size, cudaMemcpyHostToDevice);
+    conv2d_kernel<<<grid_for(total), kBlock>>>(d_x.ptr, d_w.ptr, bias ? d_b.ptr : nullptr,
+                                               N, C_in, H, W, C_out, kH, kW,
+                                               stride, padding, dilation, groups, H_out, W_out, d_y.ptr);
+    launch_check("conv2d_kernel");
 
-    dim3 blockDim(16, 16, 1);
-    dim3 gridDim((W_out + blockDim.x - 1) / blockDim.x,
-                 (H_out + blockDim.y - 1) / blockDim.y,
-                 N * C_out);
-
-    conv2d_kernel<<<gridDim, blockDim>>>(d_x, d_w, d_b, N, C_in, H, W, C_out, kH, kW, stride, padding, H_out, W_out, d_y);
-    cudaDeviceSynchronize();
-
-    std::vector<float> y(static_cast<size_t>(N) * C_out * H_out * W_out);
-    cudaMemcpy(y.data(), d_y, y_size, cudaMemcpyDeviceToHost);
-
-    cudaFree(d_x);
-    cudaFree(d_w);
-    if (d_b) cudaFree(d_b);
-    cudaFree(d_y);
-
+    std::vector<float> y(static_cast<size_t>(total));
+    cuda_check(cudaMemcpy(y.data(), d_y.ptr, y_bytes, cudaMemcpyDeviceToHost), "conv2d y kopyası");
     return y;
 }
 
 std::vector<float> relu_cuda(const float* x, int64_t n) {
-    size_t bytes = n * sizeof(float);
-    float *d_x = nullptr, *d_y = nullptr;
-    cudaMalloc(&d_x, bytes);
-    cudaMalloc(&d_y, bytes);
+    const size_t bytes = static_cast<size_t>(n) * sizeof(float);
+    DeviceBuffer d_x(bytes), d_y(bytes);
+    cuda_check(cudaMemcpy(d_x.ptr, x, bytes, cudaMemcpyHostToDevice), "relu x kopyası");
 
-    cudaMemcpy(d_x, x, bytes, cudaMemcpyHostToDevice);
+    relu_kernel<<<grid_for(n), kBlock>>>(d_x.ptr, d_y.ptr, n);
+    launch_check("relu_kernel");
 
-    int block = 256;
-    int grid = static_cast<int>((n + block - 1) / block);
-
-    relu_kernel<<<grid, block>>>(d_x, d_y, n);
-    cudaDeviceSynchronize();
-
-    std::vector<float> y(n);
-    cudaMemcpy(y.data(), d_y, bytes, cudaMemcpyDeviceToHost);
-
-    cudaFree(d_x);
-    cudaFree(d_y);
+    std::vector<float> y(static_cast<size_t>(n));
+    cuda_check(cudaMemcpy(y.data(), d_y.ptr, bytes, cudaMemcpyDeviceToHost), "relu y kopyası");
     return y;
 }
 
@@ -159,29 +174,20 @@ std::vector<float> maxpool2d_cuda(const float* x, Shape4 xs,
     const int N = xs.n, C = xs.c, H = xs.h, W = xs.w;
     H_out = (H - kernel) / stride + 1;
     W_out = (W - kernel) / stride + 1;
+    if (H_out <= 0 || W_out <= 0) throw std::invalid_argument("geçersiz maxpool çıktı boyutu");
 
-    size_t x_bytes = xs.size() * sizeof(float);
-    size_t y_bytes = static_cast<size_t>(N) * C * H_out * W_out * sizeof(float);
+    const size_t x_bytes = static_cast<size_t>(xs.size()) * sizeof(float);
+    const int64_t total = static_cast<int64_t>(N) * C * H_out * W_out;
+    const size_t y_bytes = static_cast<size_t>(total) * sizeof(float);
 
-    float *d_x = nullptr, *d_y = nullptr;
-    cudaMalloc(&d_x, x_bytes);
-    cudaMalloc(&d_y, y_bytes);
+    DeviceBuffer d_x(x_bytes), d_y(y_bytes);
+    cuda_check(cudaMemcpy(d_x.ptr, x, x_bytes, cudaMemcpyHostToDevice), "maxpool x kopyası");
 
-    cudaMemcpy(d_x, x, x_bytes, cudaMemcpyHostToDevice);
+    maxpool2d_kernel<<<grid_for(total), kBlock>>>(d_x.ptr, N, C, H, W, kernel, stride, H_out, W_out, d_y.ptr);
+    launch_check("maxpool2d_kernel");
 
-    dim3 blockDim(16, 16, 1);
-    dim3 gridDim((W_out + blockDim.x - 1) / blockDim.x,
-                 (H_out + blockDim.y - 1) / blockDim.y,
-                 N * C);
-
-    maxpool2d_kernel<<<gridDim, blockDim>>>(d_x, N, C, H, W, kernel, stride, H_out, W_out, d_y);
-    cudaDeviceSynchronize();
-
-    std::vector<float> y(static_cast<size_t>(N) * C * H_out * W_out);
-    cudaMemcpy(y.data(), d_y, y_bytes, cudaMemcpyDeviceToHost);
-
-    cudaFree(d_x);
-    cudaFree(d_y);
+    std::vector<float> y(static_cast<size_t>(total));
+    cuda_check(cudaMemcpy(y.data(), d_y.ptr, y_bytes, cudaMemcpyDeviceToHost), "maxpool y kopyası");
     return y;
 }
 

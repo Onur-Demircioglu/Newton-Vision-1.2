@@ -47,7 +47,7 @@
 [FAZ 7: Ergonomi & Usability Sertleştirmesi]
    └── Tensor.item(), Tensor.numpy(), len(Tensor) eklendi.
    └── Root namespace export'ları (CrossEntropyLoss, Adam, SGD) tamamlandı.
-   └── unittest discover: 89/89 (2026-10-23; bkz. Bölüm 8).
+   └── unittest discover: 94/94 (2026-10-23; MinGW'de 5 CUDA testi SKIP).
 ```
 
 ---
@@ -117,7 +117,7 @@ Gelecekte kod yazarken kesinlikle tekrarlanmaması gereken, bizzat yaşanmış v
 
 | Metrik / Test | Ölçülen Değer | Durum |
 |---|---|---|
-| **Birim Testler (`unittest discover`)** | **89 / 89 Başarılı** (~20 sn): TestCase dosyaları, `load_tests` ile toplanan fonksiyon testleri, C++ derleme testleri, eğitim bileşenleri (PyTorch float64 ile) | Yeşil (2026-10-23) |
+| **Birim Testler (`unittest discover`)** | **94 / 94 Başarılı** (~20 sn; MinGW'de 5 CUDA testi SKIP): TestCase dosyaları, `load_tests` ile toplanan fonksiyon testleri, C++ derleme testleri, eğitim bileşenleri (PyTorch float64 ile) | Yeşil (2026-10-23) |
 | **torchvision ResNet-18 ağırlık aktarımı** | Max fark `6e-6`, kosinüs `1.0` (rastgele ağırlıklar, BN istatistikleri rastgele) | Doğrulandı (2026-10-23) |
 | **PyTorch 2.6.0 Parite — katman matrisi** | 85/85 nokta tolerans içinde, en kötü FP32 farkı `2.7e-5` | Doğrulandı (2026-10-23) |
 | **PyTorch 2.6.0 Parite — 4 katmanlı CNN forward** | Maksimum fark `8e-8`, kosinüs `%100.000000` | Doğrulandı (2026-10-23) |
@@ -144,7 +144,7 @@ Bu framework'ü kullanırken aşılmaması gereken fiziksel ve mimari limitler:
 Eğer projede yeni bir özellik geliştirecekseniz:
 1. Katman ekleyecekseniz: Mutlaka `newton_vision.module.Module` miras alınmalı, parametreler `Parameter` olarak atanmalı ve `forward()` sonunda çıktı tensörü `return` edilmelidir.
 2. Tensör operasyonu ekleyecekseniz: `src/newton_vision/tensor.py` içine `_backward` fonksiyonu tanımlanarak topological sort grafına eklenmelidir.
-3. Testleri koşmak için: `python -m unittest discover tests` komutunu çalıştırın (89 test). Modül düzeyinde `test_*` fonksiyonu kullanan yeni bir test dosyası eklerseniz, dosyaya aynı `load_tests` bloğunu ekleyin. Aksi halde unittest o dosyayı **toplamaz**; AvgPool2d hatası tam olarak bu yüzden gözden kaçmıştı.
+3. Testleri koşmak için: `python -m unittest discover tests` komutunu çalıştırın (94 test). Modül düzeyinde `test_*` fonksiyonu kullanan yeni bir test dosyası eklerseniz, dosyaya aynı `load_tests` bloğunu ekleyin. Aksi halde unittest o dosyayı **toplamaz**; AvgPool2d hatası tam olarak bu yüzden gözden kaçmıştı.
 
 ---
 
@@ -175,4 +175,9 @@ Aynı gün düzeltilen kod hataları (ayrıntılar `PROGRESS.md` → "Düzeltile
 * Sonradan eklenenler: `AdamW`, `Upsample(linear/bilinear)`, `nv.text.Tokenizer`, gerçek ONNX (`onnx_export.py`).
 * **Performans gerçeği:** Eğitimde süre neredeyse tamamen C++ `conv2d`/`conv2d_backward` içinde geçer; Python autograd payı ihmal edilebilir. Backward eskiden tamamen seri ve naifti.
 * **C++ değişikliğinden sonra:** `build/cp313-cp313-win_amd64` içinde `cmake --build . --target _core` çalıştırın (PATH'te `/c/msys64/mingw64/bin` olmalı). Ardından `_core*.pyd` dosyasını site-packages'taki `newton_vision/` klasörüne kopyalayın; editable kurulum `.pyd`'yi oradan yüklüyor.
-* **GPU:** CUDA 12.4 ile MSVC 14.51 uyumsuz (`cudafe++` çöküyor). CUDA 12.9+ veya VS 2022 Build Tools gerekir.
+* **GPU / CUDA build'i:** `scripts/build_msvc_cuda.bat` (MSVC 14.44 + CUDA 12.4 + SDK 10.0.22621.0, sm_75).
+  * MSVC 14.51 kullanılamaz: CUDA 12.4'ün `cudafe++` aracı çöküyor.
+  * vcvars bu makinede SDK `um`/`shared` yollarını eklemiyor; script bunları elle ekliyor.
+  * MSVC'de `/openmp:llvm` KULLANMAYIN: PyTorch'un `libiomp5md`'siyle çakışıyor (OMP Error #15).
+  * Kurulu paketi değiştirmeden test etmek için editable kurulumun `ScikitBuildRedirectingFinder`'ı `sys.meta_path`'ten çıkarılmalı.
+* **OpenMP kuralı:** C++ kodu OpenMP 2.0 ile uyumlu kalmalı (MSVC). `collapse` yerine düz döngü kullanın; `omp simd` yerine `NV_OMP_SIMD` / `NV_OMP_SIMD_SUM` makrolarını kullanın.

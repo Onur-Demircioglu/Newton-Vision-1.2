@@ -4,7 +4,7 @@
 
 [![Version](https://img.shields.io/badge/version-v1.1.6-blue.svg)](https://github.com/onur-newton/newton-vision)
 [![PyTorch Parity](https://img.shields.io/badge/PyTorch%20Parity-85%2F85%20PASS-brightgreen.svg)](benchmarks/VERIFICATION_REPORT.md)
-[![Unit Tests](https://img.shields.io/badge/Unit%20Tests-89%2F89%20PASS-brightgreen.svg)](tests/)
+[![Unit Tests](https://img.shields.io/badge/Unit%20Tests-94%2F94%20PASS-brightgreen.svg)](tests/)
 [![Math Spec](https://img.shields.io/badge/Math%20Spec-Documented-orange.svg)](MATHEMATICS.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
@@ -527,7 +527,7 @@ x_gpu = x.cuda()       # veya x.to("cuda")
 x_cpu = x_gpu.cpu()     # veya x_gpu.to("cpu")
 ```
 
-> `.cuda()` veriyi GPU belleğine taşımaz; yalnızca tensörün cihaz etiketini değiştirir (bkz. yukarıdaki cihaz notu). GitHub Actions ile üretilen wheel'ler CUDA araç zinciri olmadan derlenir; CUDA için paketi CUDA Toolkit kurulu bir makinede kaynaktan derlemek gerekir.
+> `.cuda()` veriyi GPU belleğine taşımaz; yalnızca tensörün cihaz etiketini değiştirir (bkz. yukarıdaki cihaz notu). GitHub Actions ve varsayılan pip/MinGW build'i CUDA'sızdır. CUDA build'i için bkz. **Cihaz Yönetimi → CUDA build'i**.
 
 ---
 
@@ -856,6 +856,22 @@ x = nv.Tensor(np.zeros((2, 3)), device="cpu")
 x_gpu = x.cuda()
 x_cpu = x_gpu.cpu()
 ```
+
+### CUDA build'i (Windows, MSVC + CUDA)
+
+```bat
+scripts\build_msvc_cuda.bat
+```
+
+- **Çıktı:** `build\msvc-cuda\_core.cp313-win_amd64.pyd`. Varsayılan MinGW build'ine dokunmaz.
+- **Gereksinimler:** CUDA 12.4 ve Visual Studio'da **MSVC 14.44** araç seti. CUDA 12.4, VS 18'in varsayılan MSVC 14.51'iyle derlerken çöker; script bu yüzden 14.44'ü seçer. Yollar scriptin başında tanımlıdır.
+- **Çalışma zamanı:** `cudart64_12.dll` için `CUDA_PATH` tanımlı olmalı. newton-vision onu `os.add_dll_directory` ile ekler.
+- **Kapsam:**
+  - CUDA'da çalışan işlemler: `conv2d` (stride, padding, dilation, groups), `relu` ve `maxpool2d`; hepsi yalnızca **forward**.
+  - Her çağrıda host ↔ device kopyası yapılır. Diğer tüm işlemler ve tüm backward hesapları CPU'dadır.
+  - Doğrulama: `tests/test_cuda_kernels.py` çekirdekleri ve ResNet-18 / MobileNetV2'nin tam forward'ını CPU ile karşılaştırır.
+  - Bağımsız C++ API'si (`include/newton`) yalnızca CPU'dur.
+- **Hız:** GTX 1650'de büyük bir evrişim (8×64×56×56, 3×3) CPU'da 67.6 ms, CUDA'da 19.1 ms sürdü. Bu build'in CPU yolu MinGW build'inden yavaştır, çünkü MSVC'de `omp simd` yok.
 
 **AVX2 SIMD Tespiti:**
 C++ backend çalışma zamanında `CPUID` komutu ile CPU'nun AVX2 desteğini kontrol eder. AVX2 varsa SIMD hızlandırılmış GEMM kullanılır; yoksa fallback yoluna geçilir. Bu sayede ARM (Apple Silicon) veya eski x86 işlemcilerde `SIGILL` çökmesi yaşanmaz.
@@ -1233,6 +1249,7 @@ Proje aşağıdaki test ve doğrulama modüllerini içerir (tümü `tests/` ve `
 | `tests/test_real_training.py` | Lineer regresyon ve XOR uçtan uca eğitim (gerçek öğrenme doğrulaması) | **PASS** |
 | `tests/test_training_components.py` | Flatten, Conv1d, BatchNorm1d, Embedding, Upsample (nearest/linear/bilinear), L1/BCE/BCEWithLogits kayıpları, AdamW, `clip_grad_norm_`, StepLR/CosineAnnealingLR, optimizer `state_dict` ile devam, veri artırma, tokenizer, 5000 düğümlük graf backward'ı. Hepsi PyTorch (float64) ile karşılaştırılır. Ayrıca iki uçtan uca eğitim testi var; ikisi de görülmemiş veride %95'in üzerine çıkmalı | **PASS** |
 | `tests/test_onnx_export.py` | ResNet-18, MobileNetV2, ViT ve yeni katmanlar gerçek ONNX'e aktarılıp onnxruntime ile karşılaştırılır. Grafı kopuk modelin ve desteklenmeyen katmanın reddedildiği de test edilir. onnx yoksa SKIP | **PASS** |
+| `tests/test_cuda_kernels.py` | CUDA conv2d (dilation/groups/depthwise, >65535 çıktı kanalı×batch), relu ve maxpool2d çekirdekleri; `.cuda()` tensörlerle katman forward/gradyanları; ResNet-18 ve MobileNetV2 tam forward. Hepsi CPU ile karşılaştırılır. CUDA build'i yoksa SKIP | **PASS** (MSVC + CUDA build'i) |
 | `tests/test_cpp_build.py` | `tests/test_cpp_core.cpp` (C++ çekirdek self-test) ve `examples/cpp_inference_demo.cpp` derlenip çalıştırılır. g++ yoksa açıkça SKIP edilir | **PASS** |
 
 > **Not:** Modül düzeyinde `test_*` fonksiyonları kullanan dosyalar (`test_autograd`, `test_correctness`, `test_jit`, `test_models`, `test_real_training`) unittest'in `load_tests` protokolüyle toplanır. Her dosya `python tests/<dosya>.py` ile tek başına da çalıştırılabilir.
@@ -1240,7 +1257,7 @@ Proje aşağıdaki test ve doğrulama modüllerini içerir (tümü `tests/` ve `
 Testleri çalıştırma:
 
 ```bash
-# Tüm testler (89 test):
+# Tüm testler (94 test; CUDA build'i yoksa 5 CUDA testi SKIP):
 python -m unittest discover tests
 
 # 85-Noktalı Resmi PyTorch Doğrulama Matrisi:

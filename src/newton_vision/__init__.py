@@ -62,6 +62,10 @@ if sys.platform == "win32":
             os.add_dll_directory(mingw_bin)
         except Exception:
             pass
+    # MSVC + CUDA build'i cudart64_*.dll'e ihtiyaç duyar; Python 3.8+ bağımlı DLL'ler için PATH'e bakmaz
+    _cuda_bin = os.path.join(os.environ.get("CUDA_PATH", ""), "bin")
+    if os.environ.get("CUDA_PATH") and os.path.isdir(_cuda_bin):
+        os.add_dll_directory(_cuda_bin)
 
 _add_dev_core_path()
 

@@ -29,9 +29,10 @@ void im2col_cpu(const float* data_im, int channels, int height, int width,
     int channels_col = channels * kernel_h * kernel_w;
 
     // Gruplu evrişimde dış döngü zaten paraleldir: iç içe iş parçacığı açma
-    #pragma omp parallel for collapse(2) if(!omp_in_parallel())
-    for (int c = 0; c < channels_col; ++c) {
-        for (int h = 0; h < height_col; ++h) {
+    // (c, h) çiftleri tek düz döngüde: OpenMP 2.0 (MSVC /openmp) collapse desteklemez
+    #pragma omp parallel for if(!omp_in_parallel())
+    for (int ch = 0; ch < channels_col * height_col; ++ch) {
+        { const int c = ch / height_col, h = ch % height_col;
             int w_offset = c % kernel_w;
             int h_offset = (c / kernel_w) % kernel_h;
             int c_im = c / (kernel_h * kernel_w);
@@ -131,10 +132,9 @@ std::vector<float> conv2d(const float* x, Shape4 xs,
         #pragma omp parallel
         {
             std::vector<float> data_col(static_cast<size_t>(K) * L);
-            #pragma omp for collapse(2) schedule(static)
-            for (int n = 0; n < N; ++n)
-                for (int g = 0; g < groups; ++g)
-                    run(n, g, data_col.data());
+            #pragma omp for schedule(static)
+            for (int ng = 0; ng < N * groups; ++ng)
+                run(ng / groups, ng % groups, data_col.data());
         }
     }
     return y;
@@ -183,9 +183,9 @@ std::vector<float> maxpool2d(const float* x, Shape4 xs,
 
     std::vector<float> y(int64_t(N) * C * H_out * W_out);
 
-    #pragma omp parallel for collapse(2)
-    for (int n = 0; n < N; ++n) {
-        for (int c = 0; c < C; ++c) {
+    #pragma omp parallel for
+    for (int nc = 0; nc < N * C; ++nc) {
+        { const int n = nc / C, c = nc % C;
             for (int oh = 0; oh < H_out; ++oh) {
                 for (int ow = 0; ow < W_out; ++ow) {
                     float max_val = -std::numeric_limits<float>::infinity();
@@ -218,9 +218,9 @@ std::vector<float> avgpool2d(const float* x, Shape4 xs,
     std::vector<float> y(int64_t(N) * C * H_out * W_out);
     const float inv_area = 1.0f / (kernel * kernel);
 
-    #pragma omp parallel for collapse(2)
-    for (int n = 0; n < N; ++n) {
-        for (int c = 0; c < C; ++c) {
+    #pragma omp parallel for
+    for (int nc = 0; nc < N * C; ++nc) {
+        { const int n = nc / C, c = nc % C;
             for (int oh = 0; oh < H_out; ++oh) {
                 for (int ow = 0; ow < W_out; ++ow) {
                     float sum_val = 0.0f;
@@ -248,9 +248,9 @@ std::vector<float> batchnorm2d(const float* x, Shape4 xs,
     const int HW = H * W;
     std::vector<float> y(xs.size());
 
-    #pragma omp parallel for collapse(2)
-    for (int n = 0; n < N; ++n) {
-        for (int c = 0; c < C; ++c) {
+    #pragma omp parallel for
+    for (int nc = 0; nc < N * C; ++nc) {
+        { const int n = nc / C, c = nc % C;
             float mean = running_mean[c];
             float var = running_var[c];
             float g = gamma ? gamma[c] : 1.0f;
@@ -300,23 +300,25 @@ void conv2d_backward(const float* grad_y, const float* x, Shape4 xs,
         if (gb_g) {
             for (int co = 0; co < C_out_g; ++co) {
                 float sum_g = 0.0f;
-                #pragma omp simd reduction(+:sum_g)
+                NV_OMP_SIMD_SUM(sum_g)
                 for (int l = 0; l < L; ++l) sum_g += gy_ng[co * L + l];
                 gb_g[co] += sum_g;
             }
         }
 
-        // dW = dY · colᵀ   (C_out_g x K): her (co, k) bağımsız bir nokta çarpımı
-        #pragma omp parallel for collapse(2) if(!omp_in_parallel())
-        for (int co = 0; co < C_out_g; ++co) {
-            for (int k = 0; k < K; ++k) {
-                const float* gy_row = gy_ng + static_cast<int64_t>(co) * L;
-                const float* col_row = data_col + static_cast<int64_t>(k) * L;
-                float acc = 0.0f;
-                #pragma omp simd reduction(+:acc)
-                for (int l = 0; l < L; ++l) acc += gy_row[l] * col_row[l];
-                gw_g[co * K + k] += acc;
-            }
+        // dW = dY · colᵀ   (C_out_g x K): her (co, k) bağımsız bir nokta çarpımı.
+        // Tek düz döngü: OpenMP 2.0 (MSVC /openmp) collapse desteklemez.
+        const int CK = C_out_g * K;
+        #pragma omp parallel for if(!omp_in_parallel())
+        for (int ck = 0; ck < CK; ++ck) {
+            const int co = ck / K;
+            const int k = ck % K;
+            const float* gy_row = gy_ng + static_cast<int64_t>(co) * L;
+            const float* col_row = data_col + static_cast<int64_t>(k) * L;
+            float acc = 0.0f;
+            NV_OMP_SIMD_SUM(acc)
+            for (int l = 0; l < L; ++l) acc += gy_row[l] * col_row[l];
+            gw_g[ck] += acc;
         }
 
         // dcol = Wᵀ · dY   (K x L): satır bazında, l ekseninde ardışık (vektörleşebilir) erişim
@@ -327,7 +329,7 @@ void conv2d_backward(const float* grad_y, const float* x, Shape4 xs,
             for (int co = 0; co < C_out_g; ++co) {
                 const float wv = w_g[co * K + k];
                 const float* gy_row = gy_ng + static_cast<int64_t>(co) * L;
-                #pragma omp simd
+                NV_OMP_SIMD
                 for (int l = 0; l < L; ++l) gc_row[l] += wv * gy_row[l];
             }
         }

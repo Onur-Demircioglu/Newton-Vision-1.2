@@ -3,6 +3,17 @@
 #pragma once
 #include <cstdint>
 #include <omp.h>
+
+// '#pragma omp simd' OpenMP 4.0'dır; MSVC'nin /openmp (2.0) desteğinde yoktur. Orada boş geçilir ve
+// döngü derleyicinin otomatik vektörleştirmesine bırakılır.
+#define NV_PRAGMA(x) _Pragma(#x)
+#if defined(_MSC_VER) && !defined(__clang__)
+#define NV_OMP_SIMD
+#define NV_OMP_SIMD_SUM(var)
+#else
+#define NV_OMP_SIMD NV_PRAGMA(omp simd)
+#define NV_OMP_SIMD_SUM(var) NV_PRAGMA(omp simd reduction(+:var))
+#endif
 #include <vector>
 #include <algorithm>
 #include <cmath>

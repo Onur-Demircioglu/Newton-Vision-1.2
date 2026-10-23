@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstdint>
 #include <stdexcept>
+#include <string>
 #include <cmath>
 
 namespace nv {

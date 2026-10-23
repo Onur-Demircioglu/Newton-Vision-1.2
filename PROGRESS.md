@@ -37,7 +37,7 @@
 - `Tensor.item()`, `Tensor.numpy()`, `len(Tensor)` standart metotları eklendi.
 - `CrossEntropyLoss`, `MSELoss`, `SGD`, `Adam` sınıfları doğrudan root namespace'e (`nv.*`) aktarıldı.
 - `LazyLinear` dinamik boyut eşleme ve katı boyut doğrulama muhafızları (shape guards) eklendi.
-- `python -m unittest discover tests`: **89/89 test geçiyor** (TestCase dosyaları + `load_tests` ile toplanan fonksiyon testleri + C++ derleme testleri + eğitim bileşenleri + ONNX).
+- `python -m unittest discover tests`: **94/94 test geçiyor** (MinGW build'inde 5 CUDA testi SKIP; MSVC + CUDA build'inde hepsi PASS) (TestCase dosyaları + `load_tests` ile toplanan fonksiyon testleri + C++ derleme testleri + eğitim bileşenleri + ONNX).
 
 ### 4.1 Eğitim Yeteneği (2026-10-23 doğrulaması)
 - **Gerçek MNIST, LeNet:** 60 bin görsel, 3 epoch, Adam lr=1e-3 → 10 bin test görselinde **%98.43** (~80 sn/epoch).
@@ -48,7 +48,8 @@
 ### 5. Açık Sorunlar (2026-10-23 doğrulaması)
 - Python ve C++ `.nv.bin` anahtar adları ve Linear düzeni farklı (Python: `fc1.w` `(in, out)`, C++: `fc1.weight` `(out, in)`). Python'dan kaydedilen `.nv.bin` C++ tarafında doğrudan yüklenemez. Ters yön (C++ → Python) Python yükleyicisinin `weight → w` eşlemesiyle büyük olasılıkla çalışır, ancak test edilmedi.
 - **Eğitim hızı:** PyTorch CPU'dan hâlâ birkaç kat yavaş (bkz. `benchmarks/BENCH_VS_PYTORCH.md`). Profil: süre C++ evrişim çekirdeklerinde; Python autograd payı ihmal edilebilir.
-- **GPU ile eğitim: araç zinciri nedeniyle engelli.** Makinede GTX 1650 ve CUDA 12.4 var, ancak CUDA 12.4'ün `cudafe++` aracı yüklü MSVC 14.51 (Visual Studio 18) ile çöküyor (0xC0000409; `-allow-unsupported-compiler` ile de). v12.9 klasöründe nvcc yok, yani kurulum eksik. İki seçenek var: CUDA 12.9+ Toolkit'i tam kurmak ya da VS 2022 Build Tools (MSVC 14.3x) kurmak. Araç zinciri hazır olsa bile mevcut CUDA kodu yalnızca 3 forward çekirdeği içeriyor ve her çağrıda host↔device kopyası yapıyor. Gerçek GPU eğitimi için cihazda kalan tensörler ve tüm backward çekirdekleri gerekir; bu ayrı bir mimari projedir.
+- **GPU ile eğitim yok.** CUDA build'i artık çalışıyor (`scripts/build_msvc_cuda.bat`: MSVC 14.44 + CUDA 12.4, GTX 1650'de doğrulandı). Ancak yalnızca 3 forward çekirdeği var (conv2d, relu, maxpool2d) ve her çağrıda host↔device kopyası yapılıyor; backward CPU'da. Gerçek GPU eğitimi için cihazda kalan tensörler ve tüm backward çekirdekleri gerekir; bu ayrı bir mimari projedir.
+- **C++ başlık API'sinin CUDA dalları ölü kod:** `include/newton/layers.hpp`'deki `HAS_CUDA` dalları var olmayan `nv::cuda::*` fonksiyonlarını çağırıyor. Bu yüzden bağımsız C++ API'si yalnızca CPU olarak derleniyor.
 - **Hâlâ olmayanlar:** alt-kelime (BPE) tokenizer, causal attention maskesi, ONNX'te dinamik batch boyutu ve kuantize katman dışa aktarımı.
 
 ### 6. Düzeltilen Sorunlar (2026-10-23)
@@ -68,6 +69,13 @@
   - Backward döngüleri yeniden sıralandı ve paralelleştirildi (OpenMP + `omp simd`); `col2im` kanal bazında paralel.
   - Gruplu/depthwise evrişimde paralellik gruplar üzerine taşındı; iç içe paralel bölgeler `if(!omp_in_parallel())` ile engellendi.
   - Sonuç: eğitim adımı ResNet-18'de 6.3x, MobileNetV2'de 5.1x hızlandı. Parite 85/85 korundu.
+- **MSVC + CUDA build'i** (`scripts/build_msvc_cuda.bat`, ayrı `build/msvc-cuda` klasörü):
+  - **CUDA çekirdekleri:** Tüm CUDA çağrılarına hata kontrolü eklendi (hata olursa `RuntimeError`; önceden kontrol yoktu). Grid 1 boyutlu yapıldı: eski `grid.z = N*C_out` 65.535'i aşınca çekirdek sessizce hiç çalışmıyordu. `conv2d`'ye dilation/groups desteği eklendi; önceden yok sayılıyordu, gruplu evrişim CUDA'da yanlış sonuç verirdi.
+  - **Taşınabilirlik:** `cpp/layers.h` eksik `#include <string>` hatası düzeltildi. OpenMP kullanımı 2.0 uyumlu hale getirildi (collapse → düz döngü, `omp simd` → makro).
+  - **OpenMP seçimi:** MSVC'de `/openmp:llvm`, PyTorch'un Intel OpenMP'siyle aynı süreçte çakışıp süreci sonlandırdığı için klasik `/openmp` kullanılıyor.
+  - **CUDA kapsamı:** CUDA yalnızca `_core` modülüne tanımlanıyor.
+  - **Paket:** `newton_vision/__init__.py`, `CUDA_PATH`'ten `cudart` DLL dizinini ekliyor.
+  - **Yan etki:** Düz döngüler MinGW build'inde de iş dağılımını iyileştirdi; eğitim adımı ResNet-18'de 1.16 → 0.88 sn, MobileNetV2'de 1.03 → 0.68 sn.
 - **Git:** Proje klasöründe `main` dallı ayrı bir depo başlatıldı. `.gitignore`, uygulamaların ihtiyaç duyduğu modelleri ve demo görsellerini dahil edecek şekilde düzeltildi.
 - **`AvgPool2d.forward` `None` döndürüyordu:** `return out` eklendi. ResNet-18 forward/backward çalışıyor, AvgPool gradyanı gradcheck ile doğrulandı.
 - **`load_state_dict` yeniden yazıldı (tek implementasyon; `Module.load_state_dict` buna yönlendirir):**
