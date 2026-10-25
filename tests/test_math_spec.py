@@ -1,4 +1,4 @@
-"""MATHEMATICS.md <-> kod baglayici spesifikasyon testleri.
+"""docs/mathematics.md <-> kod baglayici spesifikasyon testleri.
 
 Kurallar (gradcheck metodolojisi):
 * Referans: PyTorch FP64. newton-vision FP32 calistigi icin tolerans FP32 seviyesindedir.

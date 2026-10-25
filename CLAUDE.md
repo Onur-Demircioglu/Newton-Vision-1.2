@@ -2,7 +2,7 @@
 
 ## 0. HIGHEST DIRECTIVE: ZERO-FAILURE & CAREER CRITICAL
 > **CRITICAL STAKES:** This project directly impacts the user's professional career. Flaws, regressions, crashes, or unhandled errors are strictly unacceptable.
-> All constitutional rules in [PROJECT_RULES.md](file:///c:/Users/onur_/Desktop/newton-vision/PROJECT_RULES.md) and system memories in [AI_MEMORY.md](file:///c:/Users/onur_/Desktop/newton-vision/AI_MEMORY.md) are absolute and take mandatory precedence.
+> All constitutional rules in [PROJECT_RULES.md](PROJECT_RULES.md) and system memories in [AI_MEMORY.md](AI_MEMORY.md) are absolute and take mandatory precedence.
 
 ## 1. ROLE
 You are working as a senior software engineer and framework architect.
@@ -221,7 +221,7 @@ Write readable, explicit, modular, testable, and maintainable code.
 
 ## 22. DOCUMENTATION
 Documentation must reflect the actual implementation and reality.
-The persistent architectural and operational state is maintained in [AI_MEMORY.md](file:///c:/Users/onur_/Desktop/newton-vision/AI_MEMORY.md). All AI agents must consult this file to preserve knowledge continuity.
+The persistent architectural and operational state is maintained in [AI_MEMORY.md](AI_MEMORY.md). All AI agents must consult this file to preserve knowledge continuity.
 
 ---
 

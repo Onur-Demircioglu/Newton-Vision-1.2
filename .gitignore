@@ -33,3 +33,7 @@ tutorials/data/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Kişisel notlar ve diğer AI araçlarının yapılandırması (depoya dahil değil)
+ileriye_dönük.txt
+.gemini/

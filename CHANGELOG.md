@@ -80,6 +80,24 @@
 - `newton_vision/__init__.py`: `CUDA_PATH/bin` DLL dizini olarak ekleniyor.
 - Yan etki: düz OpenMP döngüleri MinGW build'inde eğitimi hızlandırdı (ResNet-18 adımı 1.16 → 0.88 sn, MobileNetV2 1.03 → 0.68 sn).
 
+### 🧹 Proje Temizliği ve Doküman Yapısı
+- **Doküman yapısı:** README 1348 satırdan kısa bir girişe (~150 satır) indirildi. Ayrıntılar `docs/` altına taşındı: `guide.md` (tüm API), `performance.md`, `testing.md`, `cuda.md`. `MATHEMATICS.md` → `docs/mathematics.md`.
+- **Birleştirilen tekrar dokümanlar:**
+  - `WIKI.md`, `KULLANIM_KILAVUZU.md` ve `CAPABILITIES.md` → README ve `docs/guide.md`.
+  - `ROADMAP.md` → `PROGRESS.md`.
+  - `docs/benchmark.md` ve `benchmarks/BENCHMARK_RESULTS.md` → `docs/performance.md`.
+  - `docs/autograd*.md` zaten `docs/mathematics.md` içinde vardı.
+- **Kaldırılanlar:**
+  - Eski notlar: `RELEASE_NOTES_v1.1.0.md`, `QUALITY_AND_STABILITY_PLAN.md`.
+  - Kullanılmayan model: `models/vision_mnist.nv`.
+  - Tekrar eden scriptler: `tutorials/mnist_training.py`, `examples/train_mnist.py`, `examples/master_showcase.py` ve `benchmarks/benchmark_pytorch_parity.py` (aynı ölçüm `apps/pytorch_int8_benchmark.py`'de).
+- **Git takibinden çıkarılanlar** (dosyalar diskte duruyor): `ileriye_dönük.txt` (kişisel not), `.gemini/` (başka bir AI aracının yapılandırması).
+- **`benchmarks/run_all.py`:**
+  - Artık bir script başarısız olursa sıfırdan farklı çıkış koduyla bitiyor.
+  - Var olmayan "BENCHMARK_RESULTS.md'yi otomatik günceller" iddiası kaldırıldı.
+  - `--full` seçeneği eklendi.
+- **Diğer:** `CLAUDE.md` ve `PROJECT_RULES.md`'deki `file:///c:/...` mutlak bağlantılar göreli yapıldı. Tüm Markdown bağlantıları kontrol edildi: kırık bağlantı yok.
+
 ### 🛠 Altyapı
 - Proje klasöründe ayrı git deposu başlatıldı (`main`). `.gitignore` uygulamaların ihtiyaç duyduğu `models/*.nv`, `tutorials/lenet_mnist_v1.nv` ve `assets/` dosyalarını artık hariç tutmuyor.
 

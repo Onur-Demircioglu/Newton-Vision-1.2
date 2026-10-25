@@ -163,7 +163,7 @@ def run_scientific_benchmarks():
     print(markdown_report)
     print("=======================================================================")
 
-    # Elle derlenen BENCHMARK_RESULTS.md'nin üzerine yazmamak için ayrı dosya
+    # Ham rapor; elle derlenen özet docs/performance.md'dedir
     report_path = os.path.join(os.path.dirname(__file__), "BENCH_VS_PYTORCH.md")
     with open(report_path, "w", encoding="utf-8") as f:
         f.write(markdown_report + "\n")

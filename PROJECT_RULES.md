@@ -50,13 +50,13 @@
 
 Bir dosya değiştirildiğinde geliştiricinin / AI'ın izlemesi gereken sıra:
 
-1. [ ] İlgili modülün [`AI_MEMORY.md`](file:///c:/Users/onur_/Desktop/newton-vision/AI_MEMORY.md) dökümanındaki geçmişine bakıldı mı?
+1. [ ] İlgili modülün [`AI_MEMORY.md`](AI_MEMORY.md) dökümanındaki geçmişine bakıldı mı?
 2. [ ] Yeni kod yazılırken `Module` / `Parameter` kurallarına uyuldu mu?
 3. [ ] Giriş parametrelerine savunmacı sınır kontrolü (guard) konuldu mu?
 4. [ ] Değişiklik için yeni bir unit test eklendi mi?
-5. [ ] `python -m unittest discover tests` çalıştırılıp 24/24 yeşil görüldü mü?
+5. [ ] `python -m unittest discover tests` çalıştırılıp tüm testler (94) yeşil görüldü mü?
 6. [ ] `apps/` demoları çalıştırılıp canlı teyit alındı mı?
-7. [ ] [`AI_MEMORY.md`](file:///c:/Users/onur_/Desktop/newton-vision/AI_MEMORY.md) güncellendi mi?
+7. [ ] [`AI_MEMORY.md`](AI_MEMORY.md) güncellendi mi?
 
 ---
 

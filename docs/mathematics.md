@@ -1,7 +1,7 @@
 # NEWTON-VISION — MATEMATİKSEL TEMELLER VE TÜREV DERİVASYONLARI KİTABI (MATHEMATICS OF NEWTON-VISION)
 
 > **Belge Tipi:** Tam Matematiksel Şartname ve Formülasyon Kılavuzu  
-> **Konum:** `c:\Users\onur_\Desktop\newton-vision\MATHEMATICS.md`  
+> **Konum:** `docs/mathematics.md`  
 > **Sürüm:** `v1.1.6 (Specification & Code Parity Engine)`  
 > **Kapsam:** Çerçevede (Framework) uygulanan tensör cebiri, otomatik türev (Autograd), evrişim (Convolution), normalizasyon, dikkat mekanizması, optimizatörler ve INT8 kuantizasyon matematiğinin kod ile birebir tutarlı eksiksiz dökümü.
 

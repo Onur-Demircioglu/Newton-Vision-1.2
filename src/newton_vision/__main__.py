@@ -39,7 +39,7 @@ def print_general_help():
     print("    python -m newton_vision quant       -> INT8 kuantizasyon ve hizlandirma")
     print("    python -m newton_vision apps        -> 3 somut arac rehberi")
     print("\n[TAM BELGE]:")
-    print("  Ayrintili dokuman icin projedeki KULLANIM_KILAVUZU.md dosyasini inceleyin.")
+    print("  Ayrintili dokuman icin projedeki docs/guide.md dosyasini inceleyin.")
     print("=" * 72)
 
 
