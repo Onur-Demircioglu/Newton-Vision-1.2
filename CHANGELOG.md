@@ -80,6 +80,13 @@
 - `newton_vision/__init__.py`: `CUDA_PATH/bin` DLL dizini olarak ekleniyor.
 - Yan etki: düz OpenMP döngüleri MinGW build'inde eğitimi hızlandırdı (ResNet-18 adımı 1.16 → 0.88 sn, MobileNetV2 1.03 → 0.68 sn).
 
+### 📚 Yeni Öğretici
+- `tutorials/02_mnist_cnn_vs_pytorch.py`: BatchNorm'lu CNN, newton-vision ve PyTorch'ta aynı başlangıç, aynı batch'ler ve aynı veri artırmasıyla eğitiliyor. Sonuçlar (2026-10-25, 10 epoch):
+  - Test doğruluğu: newton-vision %99.42, PyTorch %99.47.
+  - INT8 ve ONNX modelleri: %99.42.
+  - Eğitim süresi: newton-vision 959 sn, PyTorch 112 sn.
+  - Ayrıntılar `docs/performance.md`'de. PyTorch ve onnxruntime opsiyonel; çıktılar `tutorials/output/` (gitignore).
+
 ### 🧹 Proje Temizliği ve Doküman Yapısı
 - **Doküman yapısı:** README 1348 satırdan kısa bir girişe (~150 satır) indirildi. Ayrıntılar `docs/` altına taşındı: `guide.md` (tüm API), `performance.md`, `testing.md`, `cuda.md`. `MATHEMATICS.md` → `docs/mathematics.md`.
 - **Birleştirilen tekrar dokümanlar:**

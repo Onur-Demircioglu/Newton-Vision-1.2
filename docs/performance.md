@@ -49,6 +49,45 @@ Ağırlıklar için simetrik $[-127, 127]$ aralığı ($Z=0$) ve filtre başına
 
 ---
 
+## Uçtan Uca Eğitim: MNIST CNN, newton-vision ve PyTorch
+
+Script: [`tutorials/02_mnist_cnn_vs_pytorch.py`](../tutorials/02_mnist_cnn_vs_pytorch.py), ölçüm tarihi 2026-10-25, bu makinenin CPU'su (PyTorch 2.6.0+cpu, 12 iş parçacığı).
+
+**Kurulum:**
+- **Model:** 207.274 parametreli CNN. Yapı: 2 kez [Conv2d → BatchNorm2d → ReLU → MaxPool2d], ardından Flatten → Linear(1568, 128) → BatchNorm1d → ReLU → Linear(128, 10).
+- **Veri:** Gerçek MNIST; 55.000 eğitim, 5.000 doğrulama. 10.000 görsellik test seti yalnızca en sonda bir kez ölçüldü.
+- **Eğitim:** 10 epoch, batch 64, AdamW (lr 2e-3, weight decay 1e-4), kosinüs LR, `clip_grad_norm_(5.0)`, RandomCrop(28, padding=2).
+- **Karşılaştırma koşulları:** İki framework aynı başlangıç ağırlıklarıyla, aynı karıştırma sırasıyla ve aynı artırılmış batch'lerle eğitildi. Rastgele maskeler iki framework'te farklı olacağı için Dropout kullanılmadı.
+
+| Epoch | nv eğitim kaybı | PyTorch eğitim kaybı | nv val doğruluğu | PyTorch val doğruluğu |
+|---|---|---|---|---|
+| 1 | 0.1548 | 0.1545 | %98.46 | %98.34 |
+| 2 | 0.0622 | 0.0621 | %99.12 | %99.04 |
+| 3 | 0.0508 | 0.0502 | %98.98 | %99.20 |
+| 4 | 0.0404 | 0.0405 | %98.94 | %99.16 |
+| 5 | 0.0350 | 0.0345 | %99.28 | %99.30 |
+| 6 | 0.0277 | 0.0275 | %99.38 | %99.48 |
+| 7 | 0.0241 | 0.0245 | %99.50 | %99.46 |
+| 8 | 0.0199 | 0.0195 | %99.48 | %99.46 |
+| 9 | 0.0172 | 0.0166 | %99.42 | %99.54 |
+| 10 | 0.0157 | 0.0157 | %99.48 | %99.56 |
+
+| Sonuç (test seti, 10.000 görsel) | newton-vision | PyTorch |
+|---|---|---|
+| Test doğruluğu | **%99.42** (58 hata) | %99.47 (53 hata) |
+| Eğitim süresi (10 epoch, salt eğitim adımları) | 959 sn | 112 sn (~8.6x hızlı) |
+| İki framework'ün tahmin uyumu | %99.79 | |
+| INT8 kuantize model | %99.42 (ağırlıklar 808 KB → 202 KB) | |
+| ONNX (onnxruntime) | %99.42, tahminlerin %100'ü aynı, en büyük çıktı farkı 1e-5 | |
+
+**Yorum:**
+- **Kayıp eğrileri:** Epoch başına binde birkaç farkla örtüşüyor. Ancak iki eğitim birebir aynı değil: eğitim sırasında aynı girdi için en büyük çıktı farkı 4–5'e çıktı. Bunun nedeni float32 yuvarlama farklarının binlerce adım boyunca birikmesi. Katman düzeyinde newton-vision'ın float64'e göre hatası PyTorch'unkiyle aynı seviyede ([testing.md](testing.md)).
+- **Doğruluk farkı:** 0.05 puan, yani 5 görsel. Tek seed'li bir deneyde bu fark gürültü seviyesinde.
+- **Sınıf düzeyi:** En zayıf recall'lar sınıf 6'da (%98.96) ve sınıf 9'da (%99.01). En sık karışan çiftler 9→4 (7 kez), 5→3 (6 kez) ve 7→2 (4 kez).
+- **Hız:** newton-vision'ın zayıf noktası. Bu model için eğitim PyTorch CPU'dan ~8.6 kat yavaş.
+
+---
+
 ## Küçük Modeller: Salt Çekirdek Süresi
 *Disk G/Ç ve görsel ön işleme hariç, doğrudan RAM üzerindeki tensörlerin C++ AVX2 forward pass süresi:*
 

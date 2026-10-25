@@ -903,6 +903,19 @@ for epoch in range(2):
 
 **Tam MNIST ile doğrulama (aynı tarih):** LeNet, 60 bin görsel, 3 epoch, Adam (lr=1e-3) ile 10 bin test görselinde **%98.43** doğruluğa ulaştı (bu makinede epoch başına ~80 sn; tekrar ölçümde %98.29).
 
+### Öğretici: MNIST CNN, newton-vision ve PyTorch (tutorials/02_mnist_cnn_vs_pytorch.py)
+
+Aynı CNN, iki framework'te aynı başlangıç ağırlıkları, aynı karıştırma ve aynı veri artırmasıyla eğitilir.
+- **Kullanılan bileşenler:** BatchNorm1d/2d, AdamW, kosinüs LR, `clip_grad_norm_`.
+- **Değerlendirme:** Ayrılmış doğrulama seti; test seti sadece en sonda bir kez ölçülür. Ardından INT8 ve ONNX doğruluğu da ölçülür.
+
+```bash
+python tutorials/02_mnist_cnn_vs_pytorch.py                       # 10 epoch, tam veri (~16 dk)
+python tutorials/02_mnist_cnn_vs_pytorch.py --epochs 1 --n-train 8000 --no-torch   # hızlı deneme
+```
+
+Sonuçlar (test %99.42, PyTorch %99.47) ve epoch tablosu: [performance.md](performance.md). Çıktılar `tutorials/output/` klasörüne yazılır.
+
 ### Öğretici 2: 3 Aşamalı Canlı Demo (tutorials/live_3stage_demo.py)
 
 3 aşamalı karşılaştırma: Saf Eğitim → PyTorch Aktarımı → INT8 Kuantizasyon.

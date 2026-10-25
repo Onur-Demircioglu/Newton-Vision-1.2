@@ -75,7 +75,7 @@ state = {k: v.detach().numpy() for k, v in torchvision.models.resnet18().state_d
 result = nv.load_state_dict(nv.models.resnet18(), state)   # result.missing_keys == [] beklenir
 ```
 
-Gerçek MNIST ile çalışan örnekler: `tutorials/01_train_mnist.py`, `tutorials/train_and_eval_lenet.py`. Tüm API: [docs/guide.md](docs/guide.md).
+Gerçek MNIST ile çalışan örnekler: `tutorials/01_train_mnist.py`, `tutorials/train_and_eval_lenet.py`, `tutorials/02_mnist_cnn_vs_pytorch.py` (aynı koşullarda PyTorch ile karşılaştırma). Tüm API: [docs/guide.md](docs/guide.md).
 
 ---
 
@@ -85,7 +85,8 @@ Hepsi bu repodaki scriptlerle ölçüldü (2026-10-23/25). Ayrıntılar: [docs/p
 
 | Ölçüm | Sonuç |
 |---|---|
-| Gerçek MNIST, LeNet, 3 epoch | **%98.3** test doğruluğu |
+| Gerçek MNIST, BatchNorm'lu CNN, 10 epoch | **%99.42** test doğruluğu; aynı koşullarda PyTorch %99.47 (eğitim ~8.6x hızlı) |
+| Gerçek MNIST, LeNet, 3 epoch | %98.3 test doğruluğu |
 | PyTorch 2.6 katman paritesi | 85/85 nokta tolerans içinde (en kötü FP32 farkı 2.7e-5) |
 | torchvision ResNet-18 ağırlık aktarımı | çıktı farkı 6e-6, kosinüs 1.0 |
 | ResNet-18 eğitim adımı | loss PyTorch ile birebir aynı |
@@ -132,7 +133,7 @@ cpp/                 C++ çekirdek (im2col + AVX2 GEMM, OpenMP) ve CUDA çekirde
 include/newton/      Bağımsız C++ çıkarım API'si
 tests/               unittest testleri (PyTorch / onnxruntime karşılaştırmaları dahil)
 examples/            Kısa API örnekleri (+ C++ demo)
-tutorials/           Gerçek MNIST eğitimi
+tutorials/           Gerçek MNIST eğitimi (+ PyTorch ile aynı koşullarda karşılaştırma)
 apps/                Demo uygulamaları (görüntü tahmini, PyTorch/INT8 karşılaştırması, sentetik malware demosu)
 benchmarks/          Parite ve hız ölçümleri (python benchmarks/run_all.py)
 scripts/             Derleme scriptleri (MSVC + CUDA)

@@ -37,3 +37,6 @@ Thumbs.db
 # Kişisel notlar ve diğer AI araçlarının yapılandırması (depoya dahil değil)
 ileriye_dönük.txt
 .gemini/
+
+# Tutorial çıktıları
+tutorials/output/
