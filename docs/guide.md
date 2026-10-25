@@ -916,6 +916,18 @@ python tutorials/02_mnist_cnn_vs_pytorch.py --epochs 1 --n-train 8000 --no-torch
 
 Sonuçlar (test %99.42, PyTorch %99.47) ve epoch tablosu: [performance.md](performance.md). Çıktılar `tutorials/output/` klasörüne yazılır.
 
+### Öğretici: CIFAR-10 CNN, newton-vision ve PyTorch (tutorials/03_cifar10_cnn_vs_pytorch.py)
+
+MNIST öğreticisiyle aynı yöntem, daha zor bir görevde: 32x32 renkli görüntü, 10 sınıf, 806K parametreli CNN; veri artırma olarak RandomCrop ve yatay çevirme.
+- **Veri:** CIFAR-10 binary sürümü yoksa resmi kaynaktan indirilir (170 MB, kaldığı yerden devam eder). Arşiv MD5 ile doğrulanır ve yolları açılmadan önce kontrol edilir. Pickle kullanılmaz.
+
+```bash
+python tutorials/03_cifar10_cnn_vs_pytorch.py                       # 15 epoch (~1.6 saat)
+python tutorials/03_cifar10_cnn_vs_pytorch.py --epochs 1 --n-train 7000 --no-torch   # hızlı deneme
+```
+
+Sonuçlar (test %86.44, PyTorch %86.25), epoch ve sınıf tabloları: [performance.md](performance.md). Çıktılar `tutorials/output/cifar10/` klasörüne yazılır (`results.json` UTF-8).
+
 ### Öğretici 2: 3 Aşamalı Canlı Demo (tutorials/live_3stage_demo.py)
 
 3 aşamalı karşılaştırma: Saf Eğitim → PyTorch Aktarımı → INT8 Kuantizasyon.

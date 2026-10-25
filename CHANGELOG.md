@@ -81,6 +81,9 @@
 - Yan etki: düz OpenMP döngüleri MinGW build'inde eğitimi hızlandırdı (ResNet-18 adımı 1.16 → 0.88 sn, MobileNetV2 1.03 → 0.68 sn).
 
 ### 📚 Yeni Öğretici
+- `tutorials/03_cifar10_cnn_vs_pytorch.py`: CIFAR-10 üzerinde 806K parametreli CNN, MNIST öğreticisiyle aynı yöntemle eğitiliyor.
+  - Veri: binary sürüm otomatik indiriliyor (kaldığı yerden devam), MD5 ile doğrulanıyor, güvenli açılıyor; pickle kullanılmıyor.
+  - Sonuçlar (2026-10-25, 15 epoch): test doğruluğu newton-vision %86.44, PyTorch %86.25. INT8 %86.56, ONNX %86.44. Eğitim süresi 85 dk ve 13 dk.
 - `tutorials/02_mnist_cnn_vs_pytorch.py`: BatchNorm'lu CNN, newton-vision ve PyTorch'ta aynı başlangıç, aynı batch'ler ve aynı veri artırmasıyla eğitiliyor. Sonuçlar (2026-10-25, 10 epoch):
   - Test doğruluğu: newton-vision %99.42, PyTorch %99.47.
   - INT8 ve ONNX modelleri: %99.42.

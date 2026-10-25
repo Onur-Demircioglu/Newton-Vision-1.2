@@ -88,6 +88,50 @@ Script: [`tutorials/02_mnist_cnn_vs_pytorch.py`](../tutorials/02_mnist_cnn_vs_py
 
 ---
 
+## Uçtan Uca Eğitim: CIFAR-10 CNN, newton-vision ve PyTorch
+
+Script: [`tutorials/03_cifar10_cnn_vs_pytorch.py`](../tutorials/03_cifar10_cnn_vs_pytorch.py), ölçüm tarihi 2026-10-25, bu makinenin CPU'su (PyTorch 2.6.0+cpu, 12 iş parçacığı).
+
+**Kurulum:**
+- **Veri:** CIFAR-10 binary sürümü, MD5 ile doğrulandı. 45.000 eğitim, 5.000 doğrulama; 10.000 görsellik test seti yalnızca en sonda bir kez ölçüldü. Normalizasyon istatistikleri yalnızca eğitim bölümünden hesaplandı.
+- **Model:** 806.218 parametreli CNN. Yapı: [Conv32] → pool → [Conv64 ×2] → pool → [Conv128 ×2] → pool → Linear(2048, 256) → BatchNorm1d → ReLU → Linear(256, 10). Her evrişimden sonra BatchNorm2d + ReLU var.
+- **Eğitim:** 15 epoch, batch 128, AdamW (lr 2e-3, weight decay 5e-4), kosinüs LR, `clip_grad_norm_(5.0)`. Veri artırma: RandomCrop(32, padding=4) ve yatay çevirme.
+- **Karşılaştırma koşulları:** İki framework aynı başlangıç ağırlıklarıyla, aynı karıştırma sırasıyla ve aynı artırılmış batch'lerle eğitildi; Dropout kullanılmadı.
+
+| Epoch | nv eğitim kaybı | PyTorch eğitim kaybı | nv val doğruluğu | PyTorch val doğruluğu |
+|---|---|---|---|---|
+| 1 | 1.3471 | 1.3487 | %65.82 | %67.16 |
+| 3 | 0.7513 | 0.7546 | %76.58 | %75.92 |
+| 5 | 0.5938 | 0.5941 | %79.68 | %80.52 |
+| 7 | 0.4956 | 0.4969 | %82.12 | %82.84 |
+| 9 | 0.4122 | 0.4110 | %84.26 | %84.48 |
+| 11 | 0.3411 | 0.3407 | %85.96 | %85.72 |
+| 13 | 0.2918 | 0.2870 | %86.38 | %86.54 |
+| 15 | 0.2664 | 0.2636 | %86.54 | %86.68 |
+
+| Sonuç (test seti, 10.000 görsel) | newton-vision | PyTorch |
+|---|---|---|
+| Test doğruluğu | **%86.44** (1.356 hata) | %86.25 |
+| Eğitim süresi (15 epoch, salt eğitim adımları) | 85 dk | 13 dk (~6.6x hızlı) |
+| İki framework'ün tahmin uyumu | %90.7 | |
+| INT8 kuantize model | %86.56 (ağırlıklar 3.1 MB → 0.8 MB) | |
+| ONNX (onnxruntime) | %86.44, tahminlerin %100'ü aynı, en büyük çıktı farkı 1e-5 | |
+
+| Sınıf | uçak | otomobil | kuş | kedi | geyik | köpek | kurbağa | at | gemi | kamyon |
+|---|---|---|---|---|---|---|---|---|---|---|
+| newton-vision | %89.7 | %94.4 | %79.4 | %70.0 | %88.1 | %78.6 | %90.5 | %89.1 | %93.0 | %91.6 |
+| PyTorch | %90.8 | %94.0 | %79.3 | %70.1 | %86.9 | %78.5 | %90.1 | %88.5 | %92.3 | %92.0 |
+
+**Yorum:**
+- **Doğruluk farkı:** İki framework arasındaki fark gürültü seviyesinde. newton-vision testte 0.19 puan, PyTorch doğrulamada 0.14 puan önde; tek seed'li bir deneyde ikisi de anlamlı değil. INT8'in %86.56'sı da FP32'den 12 görsellik bir farktır, yani gürültü.
+- **Eğitimlerin ayrışması:** Tahmin uyumu %90.7; MNIST'te bu oran %99.8'di. float32 yuvarlama farkları uzun eğitimde modelleri farklı çözümlere götürüyor, ama iki model aynı doğruluk seviyesine ulaşıyor.
+- **Sınıf düzeyi:** En sık karışan çiftler kedi→köpek (117), köpek→kedi (115) ve kuş→geyik (56). En zayıf sınıflar kedi, köpek ve kuş; CIFAR-10'un tipik hata deseni bu.
+- **Aşırı öğrenme:** Eğitim doğruluğu %91, doğrulama %86.5. 4.5 puanlık fark hafif bir aşırı öğrenmeye işaret ediyor. Hiperparametre ayarı yapılmadı.
+- **Bağlam:** %86, bu boyutta bir CNN için iyi ama son teknoloji değil; ResNet tabanlı modeller CIFAR-10'da %93–96'ya ulaşıyor. Amaç rekor değil, framework'ün daha zor bir görevde PyTorch ile aynı seviyede öğrendiğini göstermekti.
+- **Hız:** newton-vision'ın zayıf noktası; bu model için eğitim PyTorch CPU'dan ~6.6 kat yavaş.
+
+---
+
 ## Küçük Modeller: Salt Çekirdek Süresi
 *Disk G/Ç ve görsel ön işleme hariç, doğrudan RAM üzerindeki tensörlerin C++ AVX2 forward pass süresi:*
 

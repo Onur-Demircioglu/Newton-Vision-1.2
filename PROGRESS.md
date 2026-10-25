@@ -20,7 +20,7 @@
 
 | Alan | Durum |
 |---|---|
-| Eğitim | Gerçek MNIST LeNet %98.3. ResNet-18 eğitim adımında loss PyTorch ile aynı. ViT ve MobileNetV2 küçük bir batch'i ezberleyebiliyor. |
+| Eğitim | CIFAR-10 CNN test %86.44 (aynı koşullarda PyTorch %86.25). MNIST CNN %99.42 (PyTorch %99.47). ResNet-18 eğitim adımında loss PyTorch ile aynı. |
 | Hız (CPU, batch 2, 224²) | Eğitim adımı ResNet-18 0.88 sn, MobileNetV2 0.68 sn. Çıkarımda PyTorch CPU'dan 2.5–4.3x yavaş ([docs/performance.md](docs/performance.md)). |
 | PyTorch uyumu | Katman paritesi 85/85. torchvision ResNet-18 ağırlıklarıyla çıktı farkı 6e-6. |
 | Dışa aktarım | `.nv`, `.nv.bin` ve ONNX (opset 17). ONNX çıktısı onnxruntime ile doğrulanıyor. |
