@@ -2,10 +2,10 @@
 
 > **C++17 çekirdekli, NumPy tabanlı autograd'a sahip, PyTorch benzeri API sunan eğitim ve araştırma odaklı derin öğrenme framework'ü.**
 
-[![Version](https://img.shields.io/badge/version-v1.2.0-blue.svg)](CHANGELOG.md)
-[![Tests](https://img.shields.io/badge/Tests-94%2F94%20PASS-brightgreen.svg)](docs/testing.md)
-[![PyTorch Parity](https://img.shields.io/badge/PyTorch%20Parity-85%2F85%20PASS-brightgreen.svg)](benchmarks/VERIFICATION_REPORT.md)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-v1.2.1-blue.svg)](https://github.com/Onur-Demircioglu/Newton-Vision-1.2/blob/main/CHANGELOG.md)
+[![Tests](https://img.shields.io/badge/Tests-94%2F94%20PASS-brightgreen.svg)](https://github.com/Onur-Demircioglu/Newton-Vision-1.2/blob/main/docs/testing.md)
+[![PyTorch Parity](https://img.shields.io/badge/PyTorch%20Parity-85%2F85%20PASS-brightgreen.svg)](https://github.com/Onur-Demircioglu/Newton-Vision-1.2/blob/main/benchmarks/VERIFICATION_REPORT.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Onur-Demircioglu/Newton-Vision-1.2/blob/main/LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 
 newton-vision, derin öğrenme motorlarının iç işleyişini **şeffaf ve doğrulanabilir** biçimde göstermek için sıfırdan yazıldı. Ağır işlemler (evrişim, havuzlama, normalizasyon) C++ (AVX2 + OpenMP) ile çalışır. Autograd grafı ve API Python'dadır. Her katman PyTorch'a karşı sayısal olarak test edilir.
@@ -36,7 +36,7 @@ pip install newton-vision            # temel (yalnızca numpy bağımlılığı)
 pip install newton-vision[onnx]      # + ONNX dışa aktarımı ve doğrulaması
 ```
 
-Kaynaktan (C++17 derleyici gerekir): `pip install -e . --no-build-isolation`. CUDA build'i için: [docs/cuda.md](docs/cuda.md).
+Kaynaktan (C++17 derleyici gerekir): `pip install -e . --no-build-isolation`. CUDA build'i için: [docs/cuda.md](https://github.com/Onur-Demircioglu/Newton-Vision-1.2/blob/main/docs/cuda.md).
 
 ---
 
@@ -75,13 +75,13 @@ state = {k: v.detach().numpy() for k, v in torchvision.models.resnet18().state_d
 result = nv.load_state_dict(nv.models.resnet18(), state)   # result.missing_keys == [] beklenir
 ```
 
-Gerçek veriyle çalışan örnekler: `tutorials/01_train_mnist.py`, `tutorials/train_and_eval_lenet.py`, `tutorials/02_mnist_cnn_vs_pytorch.py` ve `tutorials/03_cifar10_cnn_vs_pytorch.py` (aynı koşullarda PyTorch ile karşılaştırma; CIFAR-10 gerekirse indirilip MD5 ile doğrulanır). Tüm API: [docs/guide.md](docs/guide.md).
+Gerçek veriyle çalışan örnekler: `tutorials/01_train_mnist.py`, `tutorials/train_and_eval_lenet.py`, `tutorials/02_mnist_cnn_vs_pytorch.py` ve `tutorials/03_cifar10_cnn_vs_pytorch.py` (aynı koşullarda PyTorch ile karşılaştırma; CIFAR-10 gerekirse indirilip MD5 ile doğrulanır). Tüm API: [docs/guide.md](https://github.com/Onur-Demircioglu/Newton-Vision-1.2/blob/main/docs/guide.md).
 
 ---
 
 ## 📊 Doğrulanmış Sonuçlar
 
-Hepsi bu repodaki scriptlerle ölçüldü (2026-10-23/25). Ayrıntılar: [docs/performance.md](docs/performance.md), [docs/testing.md](docs/testing.md).
+Hepsi bu repodaki scriptlerle ölçüldü (2026-10-23/25). Ayrıntılar: [docs/performance.md](https://github.com/Onur-Demircioglu/Newton-Vision-1.2/blob/main/docs/performance.md), [docs/testing.md](https://github.com/Onur-Demircioglu/Newton-Vision-1.2/blob/main/docs/testing.md).
 
 | Ölçüm | Sonuç |
 |---|---|
@@ -106,7 +106,7 @@ Hepsi bu repodaki scriptlerle ölçüldü (2026-10-23/25). Ayrıntılar: [docs/p
 - **LLM:** Causal attention maskesi ve alt-kelime (BPE) tokenizer yoktur; dağıtık eğitim ve mixed precision da yoktur.
 - **Bağımsız C++ API'si:** Yalnızca CPU'dur.
 
-Açık işler ve yol haritası: [PROGRESS.md](PROGRESS.md).
+Açık işler ve yol haritası: [PROGRESS.md](https://github.com/Onur-Demircioglu/Newton-Vision-1.2/blob/main/PROGRESS.md).
 
 ---
 
@@ -114,15 +114,15 @@ Açık işler ve yol haritası: [PROGRESS.md](PROGRESS.md).
 
 | Belge | İçerik |
 |---|---|
-| [docs/guide.md](docs/guide.md) | Tüm API: tensör/autograd, katmanlar, modeller, eğitim, veri, INT8, serileştirme/ONNX, PyTorch aktarımı, C++ API, örnekler |
-| [docs/performance.md](docs/performance.md) | Benchmark'lar ve C++ optimizasyon ayrıntıları |
-| [docs/testing.md](docs/testing.md) | Test kapsamı ve PyTorch paritesi |
-| [docs/cuda.md](docs/cuda.md) | Windows MSVC + CUDA build'i |
-| [docs/architecture.md](docs/architecture.md) | Mimari ve bellek/cihaz modeli |
-| [docs/mathematics.md](docs/mathematics.md) | Tüm katmanların matematiksel şartnamesi ve türevleri |
-| [docs/quantization.md](docs/quantization.md) | INT8 kuantizasyon matematiği |
-| [PROGRESS.md](PROGRESS.md) | Güncel durum, açık sorunlar, yol haritası |
-| [CHANGELOG.md](CHANGELOG.md) | Sürüm geçmişi |
+| [docs/guide.md](https://github.com/Onur-Demircioglu/Newton-Vision-1.2/blob/main/docs/guide.md) | Tüm API: tensör/autograd, katmanlar, modeller, eğitim, veri, INT8, serileştirme/ONNX, PyTorch aktarımı, C++ API, örnekler |
+| [docs/performance.md](https://github.com/Onur-Demircioglu/Newton-Vision-1.2/blob/main/docs/performance.md) | Benchmark'lar ve C++ optimizasyon ayrıntıları |
+| [docs/testing.md](https://github.com/Onur-Demircioglu/Newton-Vision-1.2/blob/main/docs/testing.md) | Test kapsamı ve PyTorch paritesi |
+| [docs/cuda.md](https://github.com/Onur-Demircioglu/Newton-Vision-1.2/blob/main/docs/cuda.md) | Windows MSVC + CUDA build'i |
+| [docs/architecture.md](https://github.com/Onur-Demircioglu/Newton-Vision-1.2/blob/main/docs/architecture.md) | Mimari ve bellek/cihaz modeli |
+| [docs/mathematics.md](https://github.com/Onur-Demircioglu/Newton-Vision-1.2/blob/main/docs/mathematics.md) | Tüm katmanların matematiksel şartnamesi ve türevleri |
+| [docs/quantization.md](https://github.com/Onur-Demircioglu/Newton-Vision-1.2/blob/main/docs/quantization.md) | INT8 kuantizasyon matematiği |
+| [PROGRESS.md](https://github.com/Onur-Demircioglu/Newton-Vision-1.2/blob/main/PROGRESS.md) | Güncel durum, açık sorunlar, yol haritası |
+| [CHANGELOG.md](https://github.com/Onur-Demircioglu/Newton-Vision-1.2/blob/main/CHANGELOG.md) | Sürüm geçmişi |
 
 ---
 
@@ -151,4 +151,4 @@ python benchmarks/run_all.py           # parite + uçtan uca ölçümler (--full
 
 ---
 
-[Katkıda bulunma](CONTRIBUTING.md) · [Güvenlik](SECURITY.md) · [Lisans (MIT)](LICENSE)
+[Katkıda bulunma](https://github.com/Onur-Demircioglu/Newton-Vision-1.2/blob/main/CONTRIBUTING.md) · [Güvenlik](https://github.com/Onur-Demircioglu/Newton-Vision-1.2/blob/main/SECURITY.md) · [Lisans (MIT)](https://github.com/Onur-Demircioglu/Newton-Vision-1.2/blob/main/LICENSE)

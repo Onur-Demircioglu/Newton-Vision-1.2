@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "newton-vision"
-version = "1.2.0"
+version = "1.2.1"
 description = "Educational deep learning framework: NumPy autograd, C++17 core (AVX2/OpenMP), PyTorch-like API, verified against PyTorch"
 readme = "README.md"
 requires-python = ">=3.9"

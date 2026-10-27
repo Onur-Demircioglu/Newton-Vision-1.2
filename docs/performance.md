@@ -172,8 +172,10 @@ Profil (2026-10-23): ResNet-18 / MobileNetV2 eğitim adımında sürenin ~%92'si
 
 | Eğitim adımı (batch 2, 224², 12 iş parçacığı) | Önce | Sonra | Hızlanma |
 |---|---|---|---|
-| ResNet-18 | 7.36 sn | 1.16 sn | 6.3x |
-| MobileNetV2 | 5.26 sn | 1.03 sn | 5.1x |
+| ResNet-18 | 7.36 sn | 0.88 sn | 8.4x |
+| MobileNetV2 | 5.26 sn | 0.68 sn | 7.7x |
+
+İlk paralelleştirme adımı ResNet-18'i 1.16 sn'ye, MobileNetV2'yi 1.03 sn'ye indirdi. Sonraki adımda OpenMP döngüleri MSVC uyumu için düzleştirildi; bu MinGW build'inde de ek hızlanma sağladı (bkz. CHANGELOG).
 
 Doğruluk korundu: PyTorch parite matrisi 85/85 (gruplu, dilated ve depthwise evrişim gradyanları dahil). Katman düzeyinde float64 referansına göre hata ~1e-7.
 

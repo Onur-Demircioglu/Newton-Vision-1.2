@@ -9,7 +9,7 @@
 
 ## 📌 Özet
 
-- **Sürüm:** `1.2.0` (bu dalda; PyPI'daki son sürüm 1.1.6). Değişiklikler: CHANGELOG → 1.2.0.
+- **Sürüm:** `1.2.1` (PyPI ve GitHub: https://github.com/Onur-Demircioglu/Newton-Vision-1.2). Değişiklikler: CHANGELOG.
 - **Ne:** C++17 çekirdekli (AVX2 + OpenMP), NumPy tabanlı autograd'a sahip, PyTorch benzeri API sunan eğitim/araştırma framework'ü.
 - **Testler:** `python -m unittest discover tests` → 94 test. MinGW build'inde 5 CUDA testi atlanır; MSVC + CUDA build'inde hepsi geçer. PyTorch parite matrisi 85/85.
 - **Build'ler:**
