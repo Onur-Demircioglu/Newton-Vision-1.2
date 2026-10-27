@@ -9,8 +9,14 @@ find_package(pybind11 CONFIG REQUIRED)
 # OpenMP: kod OpenMP 2.0 ile uyumludur (collapse yok, 'omp simd' MSVC'de makroyla kapalı). MSVC'de
 # klasik /openmp (vcomp140, dağıtılabilir VC++ çalışma zamanı) kullanılır. /openmp:llvm (libomp140) aynı
 # süreçte PyTorch'un Intel OpenMP'siyle (libiomp5md) çakışıp süreci sonlandırdığı için kullanılmaz.
-find_package(OpenMP REQUIRED)
-set(NV_OPENMP OpenMP::OpenMP_CXX)
+# OpenMP yoksa (ör. macOS Apple Clang, libomp kurulu değil) çekirdek tek iş parçacığında derlenir.
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    set(NV_OPENMP OpenMP::OpenMP_CXX)
+else()
+    message(WARNING "OpenMP bulunamadı: C++ çekirdeği tek iş parçacığıyla derleniyor.")
+    set(NV_OPENMP "")
+endif()
 
 include(CheckLanguage)
 check_language(CUDA)
@@ -38,14 +44,13 @@ if(CMAKE_CUDA_COMPILER)
 endif()
 
 target_include_directories(_core PRIVATE include cpp)
-if(WIN32 AND MINGW)
+if(WIN32 AND MINGW AND OpenMP_CXX_FOUND)
     # libgomp ve libwinpthread statik bağlanır. Aksi halde wheel, MinGW DLL'leri (libgomp-1.dll,
     # libwinpthread-1.dll) PATH'te olmayan makinelerde "DLL load failed" ile açılmaz.
     find_library(NV_GOMP_STATIC NAMES libgomp.a REQUIRED)
     find_library(NV_WINPTHREAD_STATIC NAMES libwinpthread.a REQUIRED)
     target_compile_options(_core PRIVATE ${OpenMP_CXX_FLAGS})
     target_link_libraries(_core PRIVATE ${NV_GOMP_STATIC} ${NV_WINPTHREAD_STATIC})
-    target_link_options(_core PRIVATE -static-libgcc -static-libstdc++)
 else()
     target_link_libraries(_core PRIVATE ${NV_OPENMP})
 endif()
@@ -70,6 +75,7 @@ if(MSVC)
 endif()
 
 if(WIN32 AND MINGW)
+    target_link_options(_core PRIVATE -static-libgcc -static-libstdc++)
     target_link_options(cpp_inference_demo PRIVATE -static-libgcc -static-libstdc++)
 endif()
 

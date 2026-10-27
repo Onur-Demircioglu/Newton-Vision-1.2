@@ -2,7 +2,21 @@
 // Güvenli dinamik CPU Tespiti (Dynamic CPUID Dispatching) — Eski CPU ve ARM'larda çökme riski sıfırlanmıştır.
 #pragma once
 #include <cstdint>
+
+// OpenMP isteğe bağlıdır (ör. macOS'un Apple Clang'ında yok). Yoksa pragmalar yok sayılır ve kod tek
+// iş parçacığında çalışır; kullanılan iki OpenMP fonksiyonu tek iş parçacığı karşılıklarıyla tanımlanır.
+#ifdef _OPENMP
 #include <omp.h>
+#else
+inline int omp_get_max_threads() { return 1; }
+inline int omp_in_parallel() { return 0; }
+#endif
+
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
+#define NV_X86 1
+#else
+#define NV_X86 0
+#endif
 
 // '#pragma omp simd' OpenMP 4.0'dır; MSVC'nin /openmp (2.0) desteğinde yoktur. Orada boş geçilir ve
 // döngü derleyicinin otomatik vektörleştirmesine bırakılır.
@@ -18,10 +32,10 @@
 #include <algorithm>
 #include <cmath>
 
-#if defined(__GNUC__) || defined(__clang__)
+#if NV_X86 && (defined(__GNUC__) || defined(__clang__))
 #include <cpuid.h>
 #include <immintrin.h>
-#elif defined(_MSC_VER)
+#elif NV_X86 && defined(_MSC_VER)
 #include <intrin.h>
 #include <immintrin.h>
 #endif
@@ -29,7 +43,9 @@
 namespace nv {
 
 inline bool has_avx2_hardware() {
-#if defined(__GNUC__) || defined(__clang__)
+#if !NV_X86
+    return false;  // ARM vb.: AVX2 yok, skaler yol kullanılır
+#elif defined(__GNUC__) || defined(__clang__)
     #if __has_builtin(__builtin_cpu_supports)
         return __builtin_cpu_supports("avx2");
     #else
@@ -48,7 +64,7 @@ inline bool has_avx2_hardware() {
 #endif
 }
 
-#if (defined(__GNUC__) || defined(__clang__)) && !defined(__AVX2__)
+#if NV_X86 && (defined(__GNUC__) || defined(__clang__)) && !defined(__AVX2__)
 __attribute__((target("avx2,fma")))
 #endif
 inline void gemm_avx2_kernel(int M, int N, int K, const float* A, const float* B, float* C, const float* bias) {
