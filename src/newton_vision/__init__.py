@@ -107,7 +107,7 @@ from newton_vision.quantization import (
     QuantizedConv2d,
 )
 
-__version__ = "1.1.6"
+__version__ = "1.2.0"
 
 
 def help(topic: str | None = None) -> None:

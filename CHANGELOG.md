@@ -4,7 +4,12 @@
 
 ---
 
-## [Yayınlanmamış] - 2026-10-23
+## [1.2.0] - 2026-10-27
+
+### 📦 Paketleme
+- Windows wheel'i artık MinGW çalışma zamanı DLL'lerine (`libgomp-1.dll`, `libwinpthread-1.dll`) bağımlı değil; `_core` statik bağlanıyor. 1.1.6 wheel'i bu DLL'leri yalnızca `C:\msys64\mingw64\bin` klasöründen bulabiliyordu; MSYS2 kurulu olmayan makinelerde `DLL load failed while importing _core` hatası veriyordu (kontrol: o klasör engellenince 1.1.6 açılmıyor, 1.2.0 açılıyor ve 94 test geçiyor).
+- PyPI açıklaması ve geliştirme durumu sınıflandırıcısı (`4 - Beta`) gerçek kapsama göre düzeltildi; var olmayan GitHub adresleri kaldırıldı.
+
 
 ### 📝 Dokümantasyon Düzeltmeleri
 - README, PROGRESS, AI_MEMORY, ROADMAP, CAPABILITIES ve `docs/` kodla karşılaştırılarak düzeltildi:

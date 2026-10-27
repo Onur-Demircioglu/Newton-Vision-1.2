@@ -2,7 +2,7 @@
 
 > **C++17 çekirdekli, NumPy tabanlı autograd'a sahip, PyTorch benzeri API sunan eğitim ve araştırma odaklı derin öğrenme framework'ü.**
 
-[![Version](https://img.shields.io/badge/version-v1.1.6-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v1.2.0-blue.svg)](CHANGELOG.md)
 [![Tests](https://img.shields.io/badge/Tests-94%2F94%20PASS-brightgreen.svg)](docs/testing.md)
 [![PyTorch Parity](https://img.shields.io/badge/PyTorch%20Parity-85%2F85%20PASS-brightgreen.svg)](benchmarks/VERIFICATION_REPORT.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)

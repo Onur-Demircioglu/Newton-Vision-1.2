@@ -424,7 +424,7 @@ class ParityVerifier:
             "",
             "> **Rapor Türü:** Bağımsız, Deterministik ve Parametrik Karşılaştırma  ",
             f"> **Tarih / Zaman:** {time.strftime('%Y-%m-%d %H:%M:%S')}  ",
-            f"> **Framework Sürümü:** newton-vision v1.1.6  ",
+            f"> **Framework Sürümü:** newton-vision v{nv.__version__}  ",
             f"> **Referans Motor:** PyTorch {torch.__version__} (IEEE 754 CPU Referansı)  ",
             f"> **Donanım Platformu:** {platform.processor()} ({platform.system()} {platform.release()})  ",
             f"> **Deterministik Tohum:** `SEED = {SEED}`  ",

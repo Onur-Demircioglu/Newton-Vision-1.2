@@ -4,8 +4,8 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "newton-vision"
-version = "1.1.6"
-description = "High-Performance Computer Vision & Deep Learning Framework in C++ & CUDA with PyTorch Parity"
+version = "1.2.0"
+description = "Educational deep learning framework: NumPy autograd, C++17 core (AVX2/OpenMP), PyTorch-like API, verified against PyTorch"
 readme = "README.md"
 requires-python = ">=3.9"
 authors = [
@@ -13,7 +13,7 @@ authors = [
 ]
 keywords = ["deep-learning", "computer-vision", "cuda", "autograd", "cnn", "resnet", "mobilenet", "cpp"]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
@@ -33,11 +33,6 @@ dependencies = [
 [project.optional-dependencies]
 # Gerçek ONNX dışa aktarımı (nv.export_onnx) ve onnxruntime ile doğrulama
 onnx = ["onnx>=1.14", "onnxruntime>=1.16"]
-
-[project.urls]
-Homepage = "https://github.com/onur/newton-vision"
-Documentation = "https://github.com/onur/newton-vision/tree/master/docs"
-Repository = "https://github.com/onur/newton-vision.git"
 
 [tool.scikit-build]
 cmake.version = ">=3.17"

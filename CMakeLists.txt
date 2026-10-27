@@ -38,7 +38,17 @@ if(CMAKE_CUDA_COMPILER)
 endif()
 
 target_include_directories(_core PRIVATE include cpp)
-target_link_libraries(_core PRIVATE ${NV_OPENMP})
+if(WIN32 AND MINGW)
+    # libgomp ve libwinpthread statik bağlanır. Aksi halde wheel, MinGW DLL'leri (libgomp-1.dll,
+    # libwinpthread-1.dll) PATH'te olmayan makinelerde "DLL load failed" ile açılmaz.
+    find_library(NV_GOMP_STATIC NAMES libgomp.a REQUIRED)
+    find_library(NV_WINPTHREAD_STATIC NAMES libwinpthread.a REQUIRED)
+    target_compile_options(_core PRIVATE ${OpenMP_CXX_FLAGS})
+    target_link_libraries(_core PRIVATE ${NV_GOMP_STATIC} ${NV_WINPTHREAD_STATIC})
+    target_link_options(_core PRIVATE -static-libgcc -static-libstdc++)
+else()
+    target_link_libraries(_core PRIVATE ${NV_OPENMP})
+endif()
 
 # 2. Pure C++ Standalone Native Library (libnewton_vision)
 add_library(newton_vision_native STATIC ${NV_CORE_SOURCES})
@@ -60,7 +70,6 @@ if(MSVC)
 endif()
 
 if(WIN32 AND MINGW)
-    target_link_options(_core PRIVATE -static-libgcc -static-libstdc++)
     target_link_options(cpp_inference_demo PRIVATE -static-libgcc -static-libstdc++)
 endif()
 
