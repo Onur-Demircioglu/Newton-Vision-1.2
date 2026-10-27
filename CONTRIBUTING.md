@@ -11,8 +11,8 @@
 
 2. **Geliştirme Ortamını Kurun:**
    ```bash
-   git clone https://github.com/KULLANICI_ADI/newton-vision.git
-   cd newton-vision
+   git clone https://github.com/Onur-Demircioglu/Newton-Vision-1.2.git
+   cd Newton-Vision-1.2
    pip install -e .[dev]
    ```
 

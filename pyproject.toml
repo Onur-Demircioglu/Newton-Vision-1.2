@@ -34,6 +34,12 @@ dependencies = [
 # Gerçek ONNX dışa aktarımı (nv.export_onnx) ve onnxruntime ile doğrulama
 onnx = ["onnx>=1.14", "onnxruntime>=1.16"]
 
+[project.urls]
+Homepage = "https://github.com/Onur-Demircioglu/Newton-Vision-1.2"
+Documentation = "https://github.com/Onur-Demircioglu/Newton-Vision-1.2/tree/main/docs"
+Repository = "https://github.com/Onur-Demircioglu/Newton-Vision-1.2.git"
+Changelog = "https://github.com/Onur-Demircioglu/Newton-Vision-1.2/blob/main/CHANGELOG.md"
+
 [tool.scikit-build]
 cmake.version = ">=3.17"
 build-dir = "build/{wheel_tag}"
