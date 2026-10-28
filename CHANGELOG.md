@@ -10,7 +10,12 @@
 - PyPI sayfasına GitHub linkleri eklendi (Homepage, Documentation, Repository, Changelog). 1.2.0 bu linkler olmadan yayınlanmıştı.
 - README'deki göreli linkler (`docs/...`, `CHANGELOG.md` vb.) mutlak GitHub adreslerine çevrildi; PyPI sayfasında artık çalışıyor.
 - `docs/performance.md`: Eğitim adımı tablosu güncel ölçümle düzeltildi (ResNet-18 0.88 sn, MobileNetV2 0.68 sn).
-- Kod değişikliği yok; derlenmiş çekirdek 1.2.0 ile aynı kaynaktan.
+
+### 🔧 Derleme
+- OpenMP artık isteğe bağlı: Apple Clang'da (libomp yok) C++ çekirdeği tek iş parçacığıyla derleniyor; önceden CMake yapılandırmada duruyordu.
+- AVX2/cpuid kodu yalnızca x86'da derleniyor; Apple Silicon (arm64) gibi platformlarda skaler yol kullanılıyor.
+- GitHub Actions: Bir işletim sistemindeki hata diğerlerini iptal etmiyor; her wheel kurulup C++ çekirdeğinden bir Conv2d forward geçiriliyor.
+- Windows wheel'inin davranışı 1.2.0 ile aynı (OpenMP ve AVX2 açık, DLL bağımlılığı yok).
 
 ---
 
