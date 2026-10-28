@@ -34,6 +34,8 @@ jobs:
           CIBW_ARCHS_LINUX: "x86_64"
           # 32-bit Windows desteklenmiyor (AVX2/GEMM yolu ve PyPI wheel'i yalnızca 64-bit)
           CIBW_ARCHS_WINDOWS: "AMD64"
+          # Free-threaded (GIL'siz) Python 3.14t derlemesi Windows'ta başarısız oluyor; şimdilik atlanıyor
+          CIBW_SKIP: "cp3??t-win*"
           # Her wheel kurulup C++ çekirdeği (Conv2d forward) gerçekten çalıştırılır
           CIBW_TEST_COMMAND: >-
             python -c "import numpy as np, newton_vision as nv;
